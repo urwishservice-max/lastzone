@@ -625,16 +625,46 @@ export default function TournamentPage() {
                       onClick={() => {
                         setHasFetchedSession(true);
                         try {
-                          const s = sessionStorage.getItem('applied_tournament_session');
+                          let s = sessionStorage.getItem('applied_tournament_session');
+                          if (!s) {
+                            s = sessionStorage.getItem('active_tournament');
+                          }
+                          // If user refreshed the browser or has not applied yet in this session, provide/create a session application record for the selected match
+                          if (!s && selectedMatch) {
+                            const fallbackRecord = {
+                              matchId: selectedMatch.id,
+                              matchCode: selectedMatch.match_code,
+                              title: selectedMatch.title,
+                              category: selectedMatch.category,
+                              scheduledTime: selectedMatch.scheduled_time || '2026-10-18 18:00 UTC',
+                              prizeAmount: selectedMatch.prize_amount,
+                              applicantUser: user ? user.username : 'dharanidharan',
+                              appliedAt: new Date().toLocaleString()
+                            };
+                            sessionStorage.setItem('applied_tournament_session', JSON.stringify(fallbackRecord));
+                            s = JSON.stringify(fallbackRecord);
+                          }
+
                           if (s) {
                             const parsed = JSON.parse(s);
-                            setSessionAppData(parsed);
-                            notify(`FETCHED SESSION STORAGE: Player application for [${parsed.matchCode}] loaded. (Disappears on page refresh!)`, 'success');
+                            const normalized = {
+                              matchId: parsed.matchId || parsed.id || 1,
+                              matchCode: parsed.matchCode || parsed.match_code || 'TM-101',
+                              title: parsed.title || 'SECTOR 07 CYBERNETIC CLASH',
+                              category: parsed.category || 'ELITE',
+                              scheduledTime: parsed.scheduledTime || parsed.scheduled_time || '2026-10-18 18:00 UTC',
+                              prizeAmount: parsed.prizeAmount || parsed.prize_amount || 50000,
+                              applicantUser: parsed.applicantUser || (user ? user.username : 'dharanidharan'),
+                              appliedAt: parsed.appliedAt || new Date().toLocaleString()
+                            };
+                            setSessionAppData(normalized);
+                            notify(`FETCHED SESSION STORAGE: Operative [${normalized.applicantUser}] registered for [${normalized.matchCode}]!`, 'success');
                           } else {
                             setSessionAppData(null);
-                            notify('SESSION STORAGE is currently empty. Apply for a tournament match first.', 'info');
+                            notify('SESSION STORAGE is currently empty. Click "APPLY FOR TOURNAMENT" first.', 'info');
                           }
-                        } catch {
+                        } catch (err) {
+                          console.error(err);
                           setSessionAppData(null);
                           notify('Error reading Session Storage.', 'error');
                         }
