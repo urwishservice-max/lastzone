@@ -42,11 +42,16 @@ export default function TournamentPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // On page load/refresh: NEVER auto-display details. Both stay hidden until the user clicks the fetch buttons.
+  // On page load / refresh:
+  // 1. Clear sessionStorage item so nothing can be retrieved after refresh (truly empty volatile session).
+  // 2. Hide all details until user clicks the fetch buttons.
   useEffect(() => {
+    try {
+      sessionStorage.removeItem('applied_tournament_session');
+      sessionStorage.removeItem('active_tournament');
+    } catch {}
     setSessionAppData(null);
     setHasFetchedSession(false);
-    // Local storage is present on device, but we do NOT display it until user clicks "FETCH LOCAL STORAGE"
     setLocalAppData([]);
     setHasFetchedLocal(false);
   }, []);
@@ -183,15 +188,20 @@ export default function TournamentPage() {
       appliedAt: new Date().toLocaleString()
     };
 
-    // 1. Store in Session Storage (active session tournament application)
-    sessionStorage.setItem('applied_tournament_session', JSON.stringify(appRecord));
-
-    // 2. Store in Local Storage (persistent applications queue across browser reloads)
+    // Check if player has already applied for this tournament in local storage
     try {
       const existing = JSON.parse(localStorage.getItem('tournament_applications_history') || '[]');
-      const updated = [appRecord, ...existing.filter(item => item.matchId !== targetMatch.id)];
-      localStorage.setItem('tournament_applications_history', JSON.stringify(updated));
+      const alreadyApplied = existing.some(item => item.matchId === targetMatch.id);
+      if (alreadyApplied) {
+        notify(`You have already applied for ${targetMatch.match_code}! Only one application per tournament is allowed.`, 'error');
+        return;
+      }
+      // Store exactly 1 application record
+      localStorage.setItem('tournament_applications_history', JSON.stringify([appRecord, ...existing]));
     } catch {}
+
+    // 1. Store exactly ONE record in Session Storage (active session)
+    sessionStorage.setItem('applied_tournament_session', JSON.stringify(appRecord));
 
     // 3. Persist to MySQL Backend
     try {
@@ -625,26 +635,7 @@ export default function TournamentPage() {
                       onClick={() => {
                         setHasFetchedSession(true);
                         try {
-                          let s = sessionStorage.getItem('applied_tournament_session');
-                          if (!s) {
-                            s = sessionStorage.getItem('active_tournament');
-                          }
-                          // If user refreshed the browser or has not applied yet in this session, provide/create a session application record for the selected match
-                          if (!s && selectedMatch) {
-                            const fallbackRecord = {
-                              matchId: selectedMatch.id,
-                              matchCode: selectedMatch.match_code,
-                              title: selectedMatch.title,
-                              category: selectedMatch.category,
-                              scheduledTime: selectedMatch.scheduled_time || '2026-10-18 18:00 UTC',
-                              prizeAmount: selectedMatch.prize_amount,
-                              applicantUser: user ? user.username : 'dharanidharan',
-                              appliedAt: new Date().toLocaleString()
-                            };
-                            sessionStorage.setItem('applied_tournament_session', JSON.stringify(fallbackRecord));
-                            s = JSON.stringify(fallbackRecord);
-                          }
-
+                          const s = sessionStorage.getItem('applied_tournament_session');
                           if (s) {
                             const parsed = JSON.parse(s);
                             const normalized = {
@@ -654,14 +645,15 @@ export default function TournamentPage() {
                               category: parsed.category || 'ELITE',
                               scheduledTime: parsed.scheduledTime || parsed.scheduled_time || '2026-10-18 18:00 UTC',
                               prizeAmount: parsed.prizeAmount || parsed.prize_amount || 50000,
-                              applicantUser: parsed.applicantUser || (user ? user.username : 'dharanidharan'),
+                              applicantUser: parsed.applicantUser || (user ? user.username : 'cadet_operative'),
                               appliedAt: parsed.appliedAt || new Date().toLocaleString()
                             };
                             setSessionAppData(normalized);
-                            notify(`FETCHED SESSION STORAGE: Operative [${normalized.applicantUser}] registered for [${normalized.matchCode}]!`, 'success');
+                            notify(`FETCHED SESSION STORAGE: Operative [${normalized.applicantUser}] applied for [${normalized.matchCode}]!`, 'success');
                           } else {
+                            // After refresh or before applying, it is completely EMPTY. Nothing will be printed!
                             setSessionAppData(null);
-                            notify('SESSION STORAGE is currently empty. Click "APPLY FOR TOURNAMENT" first.', 'info');
+                            notify('SESSION STORAGE IS EMPTY: Nothing stored (vanished after refresh).', 'info');
                           }
                         } catch (err) {
                           console.error(err);
@@ -669,7 +661,7 @@ export default function TournamentPage() {
                           notify('Error reading Session Storage.', 'error');
                         }
                       }}
-                      title="Fetch current Session Storage record"
+                      title="Fetch current Session Storage record (Empty after page refresh)"
                     >
                       ⚡ FETCH SESSION STORAGE
                     </button>

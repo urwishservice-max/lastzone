@@ -620,18 +620,30 @@ if (preg_match('#^/api/tournaments/apply/?$#', $uri) && $method === 'POST') {
     $matchCode = trim($data['matchCode'] ?? 'TM-101');
     $scheduledTime = trim($data['scheduledTime'] ?? '2026-10-18 18:00 UTC');
 
-    // Register into database
+    // Check if player has already applied for this tournament (strictly 1 application per tournament)
+    $check = $pdo->prepare("SELECT id FROM tournament_registrations WHERE match_id = ? AND user_id = ?");
+    $check->execute([$matchId, $myId]);
+    if ($check->fetch()) {
+        http_response_code(400);
+        echo json_encode([
+            "success" => false,
+            "message" => "Operative @$username is already registered for $matchCode. Only one application per tournament allowed!"
+        ]);
+        exit;
+    }
+
+    // Register exactly one record into database
     $stmt = $pdo->prepare("INSERT INTO tournament_registrations (match_id, match_code, user_id, username, display_name, scheduled_time, status) VALUES (?, ?, ?, ?, ?, ?, 'REGISTERED')");
     $stmt->execute([$matchId, $matchCode, $myId, $username, $displayName, $scheduledTime]);
     $regId = $pdo->lastInsertId();
 
-    // Increment count
+    // Increment count by exactly 1
     $pdo->prepare("UPDATE tournament_matches SET registered_count = LEAST(registered_count + 1, max_players) WHERE id = ?")->execute([$matchId]);
 
     echo json_encode([
         "success" => true,
         "registrationId" => (int)$regId,
-        "message" => "Tournament application confirmed for $matchCode scheduled at $scheduledTime! Saved to database.",
+        "message" => "Tournament application confirmed for $matchCode! Stored exactly 1 registration.",
         "scheduledTime" => $scheduledTime,
         "username" => $username
     ]);
