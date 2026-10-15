@@ -40,11 +40,10 @@ export default function TournamentPage() {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Sync Storage on load
+  // Sync Storage: Local storage is persistent across reloads.
+  // Session storage is strictly VOLATILE and NEVER auto-restored on refresh — only shown when user clicks "FETCH SESSION STORAGE".
   const syncStorage = useCallback(() => {
     try {
-      const s = sessionStorage.getItem('applied_tournament_session');
-      setSessionAppData(s ? JSON.parse(s) : null);
       const l = localStorage.getItem('tournament_applications_history');
       setLocalAppData(l ? JSON.parse(l) : []);
     } catch {}
@@ -52,6 +51,7 @@ export default function TournamentPage() {
 
   useEffect(() => {
     syncStorage();
+    // Intentionally keep sessionAppData as null on refresh so it disappears until fetched
   }, [syncStorage]);
 
   // Profile View State (Player combat history, rank, weapon loadout)
@@ -667,31 +667,64 @@ export default function TournamentPage() {
                   </div>
                 </div>
                 <div className="smb-content">
-                  <div className="smb-line">
-                    <span className="smb-label">SESSION STORAGE (VOLATILE):</span>
-                    <span className="smb-val" style={{ color: sessionAppData ? '#60a5fa' : '#71717a' }}>
+                  <div className="smb-line" style={{ alignItems: 'flex-start' }}>
+                    <span className="smb-label" style={{ minWidth: '190px' }}>SESSION STORAGE (VOLATILE):</span>
+                    <div className="smb-val" style={{ flex: 1, color: sessionAppData ? '#60a5fa' : '#71717a' }}>
                       {sessionAppData ? (
-                        <span>
-                          <strong>{sessionAppData.matchCode}</strong> &bull; {sessionAppData.title} (⏰ {sessionAppData.scheduledTime})
-                          <em style={{ marginLeft: '8px', color: '#f87171', fontSize: '11px' }}>[Transient: Will vanish on refresh]</em>
-                        </span>
+                        <div style={{ background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.3)', padding: '8px 12px', borderRadius: '4px', marginTop: '2px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>
+                              OPERATIVE: @{sessionAppData.applicantUser} &bull; MATCH: {sessionAppData.matchCode} ({sessionAppData.title})
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#f87171', fontWeight: 600 }}>
+                              ⚠ TRANSIENT: DISAPPEARS ON REFRESH
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '4px' }}>
+                            <span>CATEGORY: {sessionAppData.category}</span> &bull; 
+                            <span style={{ marginLeft: '6px' }}>TIME: ⏰ {sessionAppData.scheduledTime}</span> &bull; 
+                            <span style={{ marginLeft: '6px' }}>BOUNTY: {Number(sessionAppData.prizeAmount).toLocaleString()} CR</span>
+                          </div>
+                        </div>
                       ) : (
-                        'No session data fetched (Apply or click Fetch)'
+                        <span style={{ fontStyle: 'italic' }}>
+                          [No active session record visible. Click "FETCH SESSION STORAGE" to retrieve current session data, or apply for a match. On page refresh, it disappears.]
+                        </span>
                       )}
-                    </span>
+                    </div>
                   </div>
-                  <div className="smb-line">
-                    <span className="smb-label">LOCAL STORAGE (PERSISTENT):</span>
-                    <span className="smb-val" style={{ color: localAppData.length > 0 ? '#34d399' : '#71717a' }}>
+
+                  <div className="smb-line" style={{ alignItems: 'flex-start', marginTop: '10px' }}>
+                    <span className="smb-label" style={{ minWidth: '190px' }}>LOCAL STORAGE (ALWAYS PRESENT):</span>
+                    <div className="smb-val" style={{ flex: 1, color: localAppData.length > 0 ? '#34d399' : '#71717a' }}>
                       {localAppData.length > 0 ? (
-                        <span>
-                          <strong>{localAppData.length} applications saved</strong>: {localAppData.map(a => a.matchCode).slice(0, 4).join(', ')}
-                          {localAppData.length > 4 ? ` +${localAppData.length - 4} more` : ''}
-                        </span>
+                        <div>
+                          <div style={{ marginBottom: '6px', fontWeight: 'bold', color: '#6ee7b7' }}>
+                            {localAppData.length} PERSISTENT APPLICATION RECORDS (ALWAYS PRESERVED ACROSS REFRESHES):
+                          </div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                            {localAppData.map((app, i) => (
+                              <div
+                                key={i}
+                                style={{
+                                  background: '#141417',
+                                  border: '1px solid #27272a',
+                                  padding: '4px 8px',
+                                  fontSize: '11px',
+                                  borderRadius: '3px'
+                                }}
+                              >
+                                <span style={{ color: '#34d399', fontWeight: 600 }}>{app.matchCode}</span> &bull; 
+                                <span style={{ color: '#e4e4e7', marginLeft: '4px' }}>@{app.applicantUser}</span> &bull; 
+                                <span style={{ color: '#a1a1aa', marginLeft: '4px' }}>⏰ {app.scheduledTime}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       ) : (
-                        'No local storage records'
+                        <span style={{ fontStyle: 'italic' }}>No persistent local storage records. Apply for a match to permanently store it here.</span>
                       )}
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>
