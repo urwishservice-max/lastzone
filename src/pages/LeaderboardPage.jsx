@@ -13,10 +13,9 @@ function formatDate(isoString) {
   if (!isoString) return '--';
   try {
     const d = new Date(isoString);
-    return d.toLocaleDateString(undefined, {
+    return d.toLocaleDateString('en-US', {
       month: 'short',
-      day: 'numeric',
-      year: 'numeric'
+      day: 'numeric'
     });
   } catch {
     return '--';
@@ -31,21 +30,46 @@ export default function LeaderboardPage() {
   const [personalBest, setPersonalBest] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [currentTime, setCurrentTime] = useState('');
+  const [currentDate, setCurrentDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Clock in clean typographic style matching reference
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      let hours = now.getHours();
+      const mins = now.getMinutes().toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      const formattedHours = hours.toString().padStart(2, '0');
+      setCurrentTime(`${formattedHours}${mins}${ampm}`);
+
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      const mStr = months[now.getMonth()];
+      const yStr = now.getFullYear();
+      const dName = days[now.getDay()];
+      const dNum = now.getDate();
+      setCurrentDate({ monthYear: `${mStr}${yStr}`, dayWeek: `${dName}${dNum}` });
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchLeaderboardData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // 1. Fetch Global Top 50 Leaderboard
       const lbRes = await fetch('/api/leaderboard?limit=50');
-      if (!lbRes.ok) {
-        throw new Error(`Failed to retrieve leaderboard telemetry (Status ${lbRes.status})`);
-      }
+      if (!lbRes.ok) throw new Error(`HTTP ${lbRes.status}`);
       const lbData = await lbRes.json();
       setLeaderboard(lbData);
 
-      // 2. If logged in, fetch personal best
       const token = localStorage.getItem('lastzone_token');
       if (token) {
         try {
@@ -53,18 +77,17 @@ export default function LeaderboardPage() {
             headers: { Authorization: `Bearer ${token}` }
           });
           if (pbRes.ok && pbRes.status === 200) {
-            const pbText = await pbRes.text();
-            setPersonalBest(pbText ? JSON.parse(pbText) : null);
-          } else if (pbRes.status === 204 || pbRes.status === 404) {
+            const pbData = await pbRes.json();
+            setPersonalBest(pbData);
+          } else {
             setPersonalBest(null);
           }
-        } catch (pbErr) {
-          console.warn('Personal best fetch error:', pbErr);
+        } catch {
+          setPersonalBest(null);
         }
       }
     } catch (err) {
-      console.error('Leaderboard fetch error:', err);
-      setError(err.message || 'Error communicating with military telemetry server.');
+      setError(err.message || 'Error querying records.');
     } finally {
       setIsLoading(false);
     }
@@ -74,214 +97,175 @@ export default function LeaderboardPage() {
     fetchLeaderboardData();
   }, [fetchLeaderboardData]);
 
+  const filteredLeaderboard = leaderboard.filter((item) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (item.username && item.username.toLowerCase().includes(q)) ||
+      (item.displayName && item.displayName.toLowerCase().includes(q))
+    );
+  });
+
   return (
-    <div className="leaderboard-page-wrapper">
-      {/* Top Tactical Header */}
-      <header className="lb-header">
-        <div className="lb-header-left">
-          <button
-            className="hud-btn return-btn"
-            onClick={() => navigate('/')}
-            title="Return to Base"
-          >
-            <span className="btn-icon">‹</span>
-            <span className="btn-label">RETURN TO VANGUARD</span>
+    <div className="clean-minimal-page">
+      {/* Top Precision Toolbar */}
+      <nav className="minimal-top-bar">
+        <div className="top-bar-left">
+          <button className="minimal-link-btn" onClick={() => navigate('/')}>
+            ← BASE
           </button>
-          <div className="lb-status-pill">
-            <span className="pulse-indicator active" />
-            <span className="status-title">GLOBAL COMBAT TELEMETRY</span>
-          </div>
+          <span className="bar-separator">/</span>
+          <span className="minimal-status-tag">RANKED TELEMETRY</span>
         </div>
 
-        <div className="lb-header-center">
-          <span className="operational-hud-title">VANGUARD SECTOR RANKINGS // REAL-TIME PERSISTENT ARCHIVE</span>
-        </div>
-
-        <div className="lb-header-right">
-          <button
-            className="hud-btn refresh-btn"
-            onClick={fetchLeaderboardData}
-            disabled={isLoading}
-            title="Refresh Leaderboard Data"
-          >
-            <span className="btn-icon">↻</span>
-            <span className="btn-label">{isLoading ? 'SYNCING...' : 'SYNC DATA'}</span>
-          </button>
-          <button
-            className="hud-btn active play-action-btn"
-            onClick={() => navigate('/play')}
-            title="Deploy into Combat Sector"
-          >
-            <span className="btn-indicator" style={{ background: '#d7263d', boxShadow: '0 0 8px rgba(215, 38, 61, 0.8)' }} />
-            <span className="btn-label" style={{ color: '#fff', fontWeight: 600 }}>▶ PLAY LASTZONE</span>
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="lb-container">
-        {/* Banner Section */}
-        <div className="lb-hero-section">
-          <div className="auth-crosshair">+</div>
-          <span className="lb-hero-badge">OFFICIAL DEFENSE RECORDS // HIGH COMMAND</span>
-          <h1 className="lb-hero-title">VANGUARD HALL OF HEROES</h1>
-          <p className="lb-hero-desc">
-            Deterministic rankings for operatives who stood firm in Sector 07. Score is evaluated on confirmed kills, wave progression, and combat survival time.
-          </p>
-        </div>
-
-        {/* Operative Personal Best Dossier */}
-        {isAuthenticated ? (
-          <div className="personal-best-card">
-            <div className="pb-header">
-              <div className="pb-callsign-info">
-                <span className="pb-tag">ACTIVE OPERATIVE RECORD</span>
-                <h3 className="pb-name">
-                  {user?.displayName || user?.username}{' '}
-                  <span className="pb-handle">@{user?.username}</span>
-                </h3>
-              </div>
-              {personalBest && (
-                <div className="pb-rank-badge">
-                  <span className="rank-label">CURRENT GLOBAL RANK</span>
-                  <span className="rank-value">#{personalBest.rank}</span>
-                </div>
-              )}
-            </div>
-
-            {personalBest ? (
-              <div className="pb-stats-grid">
-                <div className="pb-stat">
-                  <span className="stat-label">RECORD SCORE</span>
-                  <span className="stat-num score-highlight">{personalBest.score.toLocaleString()}</span>
-                </div>
-                <div className="pb-stat">
-                  <span className="stat-label">ZOMBIES ELIMINATED</span>
-                  <span className="stat-num">{personalBest.kills}</span>
-                </div>
-                <div className="pb-stat">
-                  <span className="stat-label">HIGHEST WAVE</span>
-                  <span className="stat-num">WAVE {personalBest.wave}</span>
-                </div>
-                <div className="pb-stat">
-                  <span className="stat-label">COMBAT DURATION</span>
-                  <span className="stat-num font-mono">{formatDuration(personalBest.survivalDuration)}</span>
-                </div>
-                <div className="pb-stat">
-                  <span className="stat-label">RECORD DATE</span>
-                  <span className="stat-num font-mono">{formatDate(personalBest.completedAt)}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="pb-empty-notice">
-                <p>No confirmed combat runs recorded under this callsign yet.</p>
-                <button className="hud-btn active inline-btn" onClick={() => navigate('/play')}>
-                  COMMENCE FIRST MISSION
-                </button>
-              </div>
+        <div className="top-bar-center">
+          <div className="minimal-search-pill">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="SEARCH OPERATIVE..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="minimal-search-input"
+            />
+            {searchQuery && (
+              <button className="clear-search-btn" onClick={() => setSearchQuery('')}>
+                ×
+              </button>
             )}
           </div>
-        ) : (
-          <div className="auth-prompt-card">
-            <div className="prompt-content">
-              <strong>OPERATIVE TELEMETRY UNLINKED</strong>
-              <p>Authenticate your callsign to track personal records, sync kills, and compete on the global board.</p>
+        </div>
+
+        <div className="top-bar-right">
+          <button className="minimal-action-btn" onClick={() => navigate('/friends')} title="Open Squad Network Tree">
+            ⎔ SQUAD NETWORK
+          </button>
+          <button className="minimal-action-btn" onClick={fetchLeaderboardData} disabled={isLoading}>
+            {isLoading ? 'SYNCING...' : '↻ SYNC'}
+          </button>
+          <button className="minimal-play-btn" onClick={() => navigate('/play')}>
+            ▶ PLAY
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Content Layout */}
+      <main className="minimal-layout">
+        {/* Left Typographic Header inspired by reference */}
+        <section className="minimal-hero-section">
+          <div className="typo-clock-block">
+            <div className="clock-sub-indicator">
+              <span className="dot-red" />
+              <span className="temp-tag">15° NORMAL</span>
             </div>
-            <div className="prompt-actions">
-              <Link to="/login?redirect=/leaderboard" className="hud-btn active">
-                OPERATIVE LOGIN
-              </Link>
-              <Link to="/register?redirect=/leaderboard" className="hud-btn">
-                REGISTER CALLSIGN
-              </Link>
+            <div className="clock-large">
+              {currentTime.slice(0, 4)}
+              <span className="clock-ampm">{currentTime.slice(4)}</span>
+            </div>
+            <div className="calendar-grid">
+              <span className="cal-line">{currentDate.monthYear || 'OCT2026'}</span>
+              <span className="cal-day">{currentDate.dayWeek || 'THU15'}</span>
             </div>
           </div>
+
+          <div className="minimal-lead-text">
+            <h1 className="minimal-main-title">LASTZONE LEADERBOARD</h1>
+            <p className="minimal-lead-desc">
+              Deterministic combat rankings recorded across all operational sessions. Evaluated on score velocity,
+              eliminations, and survival endurance.
+            </p>
+          </div>
+        </section>
+
+        {/* Active Operative Quick Dossier Strip */}
+        {isAuthenticated && personalBest && (
+          <section className="minimal-dossier-card">
+            <div className="dossier-head">
+              <div className="dossier-name-group">
+                <span className="dossier-kicker">ACTIVE OPERATIVE</span>
+                <span className="dossier-callsign">{user?.displayName || user?.username}</span>
+                <span className="dossier-handle">@{user?.username}</span>
+              </div>
+              <div className="dossier-rank-box">
+                <span className="dossier-rank-label">RANK</span>
+                <span className="dossier-rank-value">#{personalBest.rank}</span>
+              </div>
+            </div>
+
+            <div className="dossier-metrics-row">
+              <div className="metric-unit">
+                <span className="m-label">SCORE</span>
+                <span className="m-val highlight">{personalBest.score.toLocaleString()}</span>
+              </div>
+              <div className="metric-unit">
+                <span className="m-label">KILLS</span>
+                <span className="m-val">{personalBest.kills}</span>
+              </div>
+              <div className="metric-unit">
+                <span className="m-label">WAVE</span>
+                <span className="m-val">W{personalBest.wave}</span>
+              </div>
+              <div className="metric-unit">
+                <span className="m-label">DURATION</span>
+                <span className="m-val font-mono">{formatDuration(personalBest.survivalDuration)}</span>
+              </div>
+              <div className="metric-unit">
+                <span className="m-label">RECORDED</span>
+                <span className="m-val font-mono">{formatDate(personalBest.completedAt)}</span>
+              </div>
+            </div>
+          </section>
         )}
 
-        {/* Global Leaderboard Table */}
-        <div className="lb-table-wrapper">
-          <div className="lb-table-header-strip">
-            <span className="strip-title">TOP TIER SURVIVAL OPERATIVES</span>
-            <span className="strip-count">{leaderboard.length} RECORDED ENTRIES</span>
+        {/* Clean, Image-Free Data Table */}
+        <section className="minimal-table-container">
+          <div className="table-meta-bar">
+            <span className="meta-count">{filteredLeaderboard.length} OPERATIVES RECORDED</span>
+            <span className="meta-system">REAL-TIME MYSQL ARCHIVE</span>
           </div>
 
-          {error && (
-            <div className="auth-error-alert" role="alert" style={{ margin: '20px' }}>
-              <span className="error-dot" />
-              <span>{error}</span>
-            </div>
-          )}
+          {error && <div className="minimal-error-box">{error}</div>}
 
-          {isLoading && leaderboard.length === 0 ? (
-            <div className="lb-loading-box">
-              <div className="pulse-indicator active" />
-              <span>QUERYING SECURE POSTGRES ARCHIVE...</span>
-            </div>
-          ) : leaderboard.length === 0 && !error ? (
-            <div className="lb-empty-box">
-              <p>No operatives have logged combat runs yet. Be the first to enter Sector 07!</p>
-              <button className="hud-btn active" onClick={() => navigate('/play')}>
-                ▶ LAUNCH MISSION
-              </button>
-            </div>
+          {isLoading && filteredLeaderboard.length === 0 ? (
+            <div className="minimal-loading">QUERYING ARCHIVE...</div>
+          ) : filteredLeaderboard.length === 0 ? (
+            <div className="minimal-empty">NO ENTRIES FOUND</div>
           ) : (
-            <div className="table-responsive">
-              <table className="lb-table">
+            <div className="table-scroll-wrapper">
+              <table className="minimal-data-table">
                 <thead>
                   <tr>
-                    <th className="th-rank">RANK</th>
-                    <th className="th-operative">OPERATIVE</th>
-                    <th className="th-score">SCORE</th>
-                    <th className="th-kills">KILLS</th>
-                    <th className="th-wave">WAVE</th>
-                    <th className="th-time">TIME</th>
-                    <th className="th-date">RECORDED</th>
+                    <th className="col-rank">RANK</th>
+                    <th className="col-op">OPERATIVE</th>
+                    <th className="col-num">SCORE</th>
+                    <th className="col-num">KILLS</th>
+                    <th className="col-num">WAVE</th>
+                    <th className="col-time">TIME</th>
+                    <th className="col-date">DATE</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {leaderboard.map((entry) => {
-                    const isCurrentUser = user && user.username === entry.username;
-                    const rankClass =
-                      entry.rank === 1
-                        ? 'rank-first'
-                        : entry.rank === 2
-                        ? 'rank-second'
-                        : entry.rank === 3
-                        ? 'rank-third'
-                        : '';
-
+                  {filteredLeaderboard.map((entry) => {
+                    const isSelf = user && user.username === entry.username;
                     return (
-                      <tr
-                        key={`${entry.runId}-${entry.rank}`}
-                        className={`${isCurrentUser ? 'current-user-row' : ''} ${rankClass}`}
-                      >
-                        <td className="td-rank">
-                          <span className={`rank-pill ${rankClass}`}>
-                            {entry.rank === 1 ? '🥇 #1' : entry.rank === 2 ? '🥈 #2' : entry.rank === 3 ? '🥉 #3' : `#${entry.rank}`}
+                      <tr key={`${entry.runId}-${entry.rank}`} className={isSelf ? 'row-self' : ''}>
+                        <td className="col-rank">
+                          <span className={`rank-tag rank-${entry.rank <= 3 ? entry.rank : 'default'}`}>
+                            #{entry.rank}
                           </span>
                         </td>
-                        <td className="td-operative">
-                          <div className="op-info">
-                            <span className="op-name">{entry.displayName || entry.username}</span>
-                            <span className="op-handle">@{entry.username}</span>
-                            {isCurrentUser && <span className="you-badge">YOU</span>}
+                        <td className="col-op">
+                          <div className="operative-cell">
+                            <span className="op-title">{entry.displayName || entry.username}</span>
+                            <span className="op-sub">@{entry.username}</span>
+                            {isSelf && <span className="self-badge">YOU</span>}
                           </div>
                         </td>
-                        <td className="td-score">
-                          <span className="score-val">{entry.score.toLocaleString()}</span>
-                        </td>
-                        <td className="td-kills">
-                          <span className="kills-val">{entry.kills}</span>
-                        </td>
-                        <td className="td-wave">
-                          <span className="wave-badge">WAVE {entry.wave}</span>
-                        </td>
-                        <td className="td-time font-mono">
-                          {formatDuration(entry.survivalDuration)}
-                        </td>
-                        <td className="td-date font-mono">
-                          {formatDate(entry.completedAt)}
-                        </td>
+                        <td className="col-num font-mono bold">{entry.score.toLocaleString()}</td>
+                        <td className="col-num font-mono">{entry.kills}</td>
+                        <td className="col-num font-mono">W{entry.wave}</td>
+                        <td className="col-time font-mono">{formatDuration(entry.survivalDuration)}</td>
+                        <td className="col-date font-mono">{formatDate(entry.completedAt || entry.playedAt)}</td>
                       </tr>
                     );
                   })}
@@ -289,7 +273,13 @@ export default function LeaderboardPage() {
               </table>
             </div>
           )}
-        </div>
+        </section>
+
+        {/* Minimal Footer */}
+        <footer className="minimal-footer">
+          <span>COIMBATORE INSTITUTE OF TECHNOLOGY // 23IT721 FULL STACK DEVELOPMENT</span>
+          <span>LASTZONE PLATFORM</span>
+        </footer>
       </main>
     </div>
   );

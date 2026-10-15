@@ -27,7 +27,28 @@ gltfLoader.setDRACOLoader(dracoLoader);
 function normalizeLoadedModel(scene, targetHeight = 1.9) {
   const pivot = new THREE.Group();
   
-  // Compute initial bounding box
+  // Strip out any floor, ground, or pedestal meshes/nodes embedded in models (e.g. Spartan's Floor_lambert2_0 disk)
+  const toRemove = [];
+  scene.traverse((child) => {
+    const name = (child.name || '').toLowerCase();
+    if (
+      name.includes('floor') ||
+      name.includes('ground') ||
+      name.includes('pedestal') ||
+      name.includes('disk') ||
+      name.includes('plinth') ||
+      name.includes('stand')
+    ) {
+      toRemove.push(child);
+    }
+  });
+  toRemove.forEach((obj) => {
+    if (obj.parent) {
+      obj.parent.remove(obj);
+    }
+  });
+
+  // Compute clean initial bounding box of the actual character/weapon geometry
   const box = new THREE.Box3().setFromObject(scene);
   const size = new THREE.Vector3();
   const center = new THREE.Vector3();
@@ -44,7 +65,7 @@ function normalizeLoadedModel(scene, targetHeight = 1.9) {
   scene.position.y = -center.y;
   scene.position.z = -center.z;
 
-  // Enable shadows and enhance materials
+  // Enable shadows and enhance materials with clean culling to prevent shadow flickering
   scene.traverse((child) => {
     if (child.isMesh) {
       child.castShadow = true;
@@ -52,12 +73,17 @@ function normalizeLoadedModel(scene, targetHeight = 1.9) {
       if (child.material) {
         child.material.envMapIntensity = 1.2;
         child.material.roughness = Math.min(child.material.roughness || 0.4, 0.6);
+        // Prevent z-fighting and shadow acne flickering
+        child.material.shadowSide = THREE.FrontSide;
+        child.material.depthTest = true;
+        child.material.depthWrite = true;
       }
     }
   });
 
   pivot.add(scene);
   pivot.scale.setScalar(uniformScale); // STRICT UNIFORM SCALING
+  pivot.userData.baseScale = uniformScale;
 
   return pivot;
 }
@@ -174,7 +200,8 @@ function createFallbackRifle() {
   group.add(receiver, barrel, mag, stock, optic);
 
   pivot.add(group);
-  pivot.scale.setScalar(1.4);
+  pivot.scale.setScalar(1.0);
+  pivot.userData.baseScale = 1.0;
   return pivot;
 }
 
@@ -216,7 +243,8 @@ function createFallbackMachinegun() {
   group.add(body, barrel, muzzleBrake, ammoDrum);
 
   pivot.add(group);
-  pivot.scale.setScalar(1.2);
+  pivot.scale.setScalar(1.0);
+  pivot.userData.baseScale = 1.0;
   return pivot;
 }
 
@@ -232,8 +260,8 @@ export async function loadNormalizedModel(type) {
 
   const targetHeights = {
     spartan: 1.9,
-    rifle: 1.2,
-    machinegun: 1.4
+    rifle: 1.55,
+    machinegun: 1.85
   };
 
   const paths = modelPaths[type] || [];

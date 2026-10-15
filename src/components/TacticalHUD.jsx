@@ -60,6 +60,54 @@ export default function TacticalHUD() {
       </nav>
 
       <div className="hud-right">
+        {/* Weapons & Event Handling Lab */}
+        <button
+          id="weapons-nav-btn"
+          className="hud-btn weapons-nav-btn"
+          onClick={() => navigate('/weapons')}
+          aria-label="Weapons Calibration Laboratory"
+          title="Interactive Weapons & JS Event Lab"
+        >
+          <span className="btn-indicator" style={{ background: '#00e5ff', boxShadow: '0 0 6px rgba(0, 229, 255, 0.7)' }} />
+          <span className="btn-label" style={{ color: '#00e5ff', fontWeight: 600 }}>⚔ WEAPONS LAB</span>
+        </button>
+
+        {/* Tournament Center */}
+        <button
+          id="tournament-nav-btn"
+          className="hud-btn"
+          onClick={() => navigate('/tournaments')}
+          aria-label="Tournament Match Center"
+          title="Tournament Matches & Player Profile History"
+        >
+          <span className="btn-indicator" style={{ background: '#f59e0b', boxShadow: '0 0 6px rgba(245, 158, 11, 0.7)' }} />
+          <span className="btn-label" style={{ color: '#f59e0b', fontWeight: 600 }}>🏆 TOURNAMENT</span>
+        </button>
+
+        {/* Profile Link Scraper */}
+        <button
+          id="scraper-nav-btn"
+          className="hud-btn"
+          onClick={() => navigate('/scraper')}
+          aria-label="Player Profile Link Scraper"
+          title="DOM Parser & Telemetry Scraper Tool"
+        >
+          <span className="btn-indicator" style={{ background: '#a855f7', boxShadow: '0 0 6px rgba(168, 85, 247, 0.7)' }} />
+          <span className="btn-label" style={{ color: '#c084fc', fontWeight: 600 }}>⚡ SCRAPER</span>
+        </button>
+
+        {/* Friends & Network Link */}
+        <button
+          id="friends-nav-btn"
+          className="hud-btn"
+          onClick={() => navigate('/friends')}
+          aria-label="Operative Friends Network"
+          title="Drag and Drop Tactical Network Tree"
+        >
+          <span className="btn-indicator" style={{ background: '#10b981', boxShadow: '0 0 6px rgba(16, 185, 129, 0.7)' }} />
+          <span className="btn-label" style={{ color: '#10b981', fontWeight: 600 }}>⎔ SQUAD NETWORK</span>
+        </button>
+
         {/* Leaderboard Link */}
         <button
           id="leaderboard-nav-btn"

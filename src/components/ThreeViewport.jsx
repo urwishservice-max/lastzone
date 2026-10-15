@@ -59,8 +59,8 @@ export default function ThreeViewport() {
     const camera = new THREE.PerspectiveCamera(
       timelineConfig.global.cameraFov,
       window.innerWidth / window.innerHeight,
-      timelineConfig.global.cameraNear,
-      timelineConfig.global.cameraFar
+      0.1,
+      1000
     );
     camera.position.set(0, 0.05, 5.0);
     camera.lookAt(cameraTarget);
@@ -69,10 +69,12 @@ export default function ThreeViewport() {
       canvas,
       alpha: true,
       antialias: true,
-      powerPreference: 'high-performance'
+      powerPreference: 'high-performance',
+      precision: 'highp',
+      logarithmicDepthBuffer: true
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, timelineConfig.global.dprCap));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -98,7 +100,14 @@ export default function ThreeViewport() {
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.width = 2048;
     keyLight.shadow.mapSize.height = 2048;
-    keyLight.shadow.bias = -0.0005;
+    keyLight.shadow.camera.near = 0.5;
+    keyLight.shadow.camera.far = 25;
+    keyLight.shadow.camera.left = -4;
+    keyLight.shadow.camera.right = 4;
+    keyLight.shadow.camera.top = 4;
+    keyLight.shadow.camera.bottom = -4;
+    keyLight.shadow.bias = -0.0003;
+    keyLight.shadow.normalBias = 0.03;
     scene.add(keyLight);
 
     const fillLight = new THREE.DirectionalLight(studioPreset.fill.color, studioPreset.fill.intensity);
@@ -153,7 +162,10 @@ export default function ThreeViewport() {
       map: shadowTexture,
       transparent: true,
       opacity: 0.65,
-      depthWrite: false
+      depthWrite: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1
     });
     const contactShadow = new THREE.Mesh(shadowGeo, shadowMat);
     contactShadow.position.y = -0.96;
@@ -462,6 +474,7 @@ export default function ThreeViewport() {
         const config = scenes[index];
         if (!config) return;
 
+        // 1. Scene Controller Trigger (coordinates 3D models and lighting)
         const st = ScrollTrigger.create({
           trigger: el,
           start: 'top center',
@@ -471,6 +484,55 @@ export default function ThreeViewport() {
           onUpdate: (self) => onSceneProgress(config, index, self.progress)
         });
         triggers.push(st);
+
+        // 2. Parallax Depth Scrub on Giant Background Typography
+        const bgWord = el.querySelector('.giant-bg-word');
+        if (bgWord) {
+          const bgTween = gsap.fromTo(
+            bgWord,
+            { y: -70 },
+            {
+              y: 70,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 1.2
+              }
+            }
+          );
+          if (bgTween.scrollTrigger) triggers.push(bgTween.scrollTrigger);
+        }
+
+        // 3. Cinematic Entrance Stagger & Fade-In for Editorial Elements
+        const animElements = el.querySelectorAll(
+          '.caption-tracked, .scene-statement, .display-title-stagger .title-line, .display-title-large, .finale-title, .red-accent-bar, .scene-body-text, .stats-panel-card, .heavy-weapon-card, .sandbox-instructions-card, .ancient-quote-block, .cinematic-photo-strip, .weapon-specs-strip, .tactical-callout, .start-game-wrapper'
+        );
+
+        if (animElements.length > 0) {
+          gsap.set(animElements, { y: 35, opacity: 0 });
+
+          const entranceTl = gsap.to(animElements, {
+            y: 0,
+            opacity: 1,
+            duration: 0.9,
+            stagger: 0.08,
+            ease: 'power3.out',
+            paused: true
+          });
+
+          const entranceSt = ScrollTrigger.create({
+            trigger: el,
+            start: 'top 75%',
+            end: 'bottom 25%',
+            onEnter: () => entranceTl.play(),
+            onEnterBack: () => entranceTl.play(),
+            onLeave: () => gsap.to(animElements, { opacity: 0.25, y: -15, duration: 0.5, ease: 'power2.in' }),
+            onLeaveBack: () => gsap.to(animElements, { opacity: 0, y: 35, duration: 0.5, ease: 'power2.in' })
+          });
+          triggers.push(entranceSt);
+        }
       });
 
       // Master scroll progress
@@ -561,70 +623,128 @@ export default function ThreeViewport() {
         setTimeout(() => setIsDawnFlash(false), 900);
       }
 
-      // Model visibility
+      // Model visibility & smooth transitions (No racing onComplete callbacks to prevent flashing/blinking)
       if (spartanPivot) {
-        spartanPivot.visible = (config.spartan && config.spartan.opacity !== 0);
-        if (config.spartan && config.spartan.pos) {
+        const isSpartanTargetVisible = Boolean(config.spartan && config.spartan.opacity !== 0);
+        gsap.killTweensOf(spartanPivot.position);
+        gsap.killTweensOf(spartanPivot.scale);
+
+        if (isSpartanTargetVisible) {
+          spartanPivot.visible = true;
+
+          const targetPos = config.spartan.pos || [0, 0, 0];
+          const targetScale = config.spartan.scale || 0.82;
+
           gsap.to(spartanPivot.position, {
-            x: config.spartan.pos[0],
-            y: config.spartan.pos[1],
-            z: config.spartan.pos[2],
-            duration: 1.2,
-            ease: 'power2.out'
+            x: targetPos[0],
+            y: targetPos[1],
+            z: targetPos[2],
+            duration: 0.8,
+            ease: 'power2.out',
+            overwrite: 'auto'
           });
-        }
-        if (config.spartan && config.spartan.scale) {
+
           gsap.to(spartanPivot.scale, {
-            x: config.spartan.scale,
-            y: config.spartan.scale,
-            z: config.spartan.scale,
-            duration: 1.2,
-            ease: 'power2.out'
+            x: targetScale,
+            y: targetScale,
+            z: targetScale,
+            duration: 0.8,
+            ease: 'power2.out',
+            overwrite: 'auto'
           });
+        } else {
+          // Instantly toggle off visibility when scene dictates opacity 0, prevent position leap thrash
+          spartanPivot.visible = false;
         }
       }
 
       if (riflePivot) {
-        riflePivot.visible = !!(config.rifle && config.rifle.visible);
-        if (config.rifle && config.rifle.pos) {
+        const isRifleTargetVisible = Boolean(config.rifle && config.rifle.visible);
+        gsap.killTweensOf(riflePivot.position);
+        gsap.killTweensOf(riflePivot.rotation);
+        gsap.killTweensOf(riflePivot.scale);
+
+        if (isRifleTargetVisible) {
+          riflePivot.visible = true;
+
+          const targetPos = config.rifle.pos || [0, 0, 0];
+          const targetRot = config.rifle.rot || [0, 0, 0];
+          const baseScale = riflePivot.userData.baseScale || 1.0;
+          const targetScale = baseScale * (config.rifle.scale !== undefined ? config.rifle.scale : 1.0);
+
           gsap.to(riflePivot.position, {
-            x: config.rifle.pos[0],
-            y: config.rifle.pos[1],
-            z: config.rifle.pos[2],
-            duration: 1.0,
-            ease: 'power2.out'
+            x: targetPos[0],
+            y: targetPos[1],
+            z: targetPos[2],
+            duration: 0.8,
+            ease: 'power2.out',
+            overwrite: 'auto'
           });
-        }
-        if (config.rifle && config.rifle.rot) {
+
           gsap.to(riflePivot.rotation, {
-            x: config.rifle.rot[0],
-            y: config.rifle.rot[1],
-            z: config.rifle.rot[2],
-            duration: 1.0,
-            ease: 'power2.out'
+            x: targetRot[0],
+            y: targetRot[1],
+            z: targetRot[2],
+            duration: 0.8,
+            ease: 'power2.out',
+            overwrite: 'auto'
           });
+
+          gsap.to(riflePivot.scale, {
+            x: targetScale,
+            y: targetScale,
+            z: targetScale,
+            duration: 0.8,
+            ease: 'power2.out',
+            overwrite: 'auto'
+          });
+        } else {
+          riflePivot.visible = false;
         }
       }
 
       if (machinegunPivot) {
-        machinegunPivot.visible = !!(config.machinegun && config.machinegun.visible);
-        if (config.machinegun && config.machinegun.pos) {
+        const isMachinegunTargetVisible = Boolean(config.machinegun && config.machinegun.visible);
+        gsap.killTweensOf(machinegunPivot.position);
+        gsap.killTweensOf(machinegunPivot.rotation);
+        gsap.killTweensOf(machinegunPivot.scale);
+
+        if (isMachinegunTargetVisible) {
+          machinegunPivot.visible = true;
+
+          const targetPos = config.machinegun.pos || [0, 0, 0];
+          const targetRot = config.machinegun.rot || [0, 0, 0];
+          const baseScale = machinegunPivot.userData.baseScale || 1.0;
+          const targetScale = baseScale * (config.machinegun.scale !== undefined ? config.machinegun.scale : 1.0);
+
           gsap.to(machinegunPivot.position, {
-            x: config.machinegun.pos[0],
-            y: config.machinegun.pos[1],
-            z: config.machinegun.pos[2],
-            duration: 1.0,
-            ease: 'power2.out'
+            x: targetPos[0],
+            y: targetPos[1],
+            z: targetPos[2],
+            duration: 0.8,
+            ease: 'power2.out',
+            overwrite: 'auto'
           });
-        }
-        if (config.machinegun && config.machinegun.rot) {
+
           gsap.to(machinegunPivot.rotation, {
-            x: config.machinegun.rot[0],
-            y: config.machinegun.rot[1],
-            z: config.machinegun.rot[2],
-            duration: 1.0,
-            ease: 'power2.out'
+            x: targetRot[0],
+            y: targetRot[1],
+            z: targetRot[2],
+            duration: 0.8,
+            ease: 'power2.out',
+            overwrite: 'auto'
           });
+
+          gsap.to(machinegunPivot.scale, {
+            x: targetScale,
+            y: targetScale,
+            z: targetScale,
+            duration: 0.8,
+            ease: 'power2.out',
+            overwrite: 'auto'
+          });
+        } else {
+          machinegunPivot.visible = false;
         }
       }
 
@@ -781,17 +901,23 @@ export default function ThreeViewport() {
     };
     window.addEventListener('resize', onResize);
 
+    // Smooth camera damping variables
+    const currentCamPos = new THREE.Vector3().copy(camera.position);
+    const currentCamTarget = new THREE.Vector3().copy(cameraTarget);
+
     // --- 9. Render Loop ---
     const render = () => {
       if (isDisposed) return;
       animFrameId = requestAnimationFrame(render);
 
-      const delta = clock.getDelta();
+      const delta = Math.min(clock.getDelta(), 0.1);
 
       if (controls && controls.enabled) {
         controls.update();
       } else {
-        camera.lookAt(cameraTarget);
+        // Silky smooth lerp to cameraTarget to avoid camera jitter/flicker
+        currentCamTarget.lerp(cameraTarget, 0.12);
+        camera.lookAt(currentCamTarget);
       }
 
       if (contactShadow && spartanPivot) {
