@@ -145,57 +145,171 @@ export default function ScraperPage() {
                 <span className="srb-time">{scrapeResult.scrapedAt}</span>
               </div>
 
-              {scrapeResult.metadata && (
-                <div className="srb-grid">
-                  <div className="srb-profile-header">
-                    <div className="srb-avatar">
-                      {scrapeResult.metadata.callsign?.replace('@', '').slice(0, 2).toUpperCase() || 'OP'}
+              {/* Competitor / Public Web Page Analysis (Assignment VIII Specification) */}
+              {scrapeResult.analysis && (
+                <div style={{ marginTop: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #27272a', paddingBottom: '8px' }}>
+                    <span className="mono" style={{ color: '#4ade80', fontSize: '13px', fontWeight: 'bold' }}>
+                      ✓ HTTP {scrapeResult.httpStatus} // RAW HTML SIZE: {scrapeResult.analysis.pageSizeKB} KB ({scrapeResult.analysis.pageSizeBytes} bytes)
+                    </span>
+                    <span className="mono text-xs" style={{ color: '#71717a' }}>CHARSET: {scrapeResult.analysis.charset} &bull; LANG: {scrapeResult.analysis.language}</span>
+                  </div>
+
+                  {/* 15 Specification Points Table */}
+                  <div className="admin-table-wrap" style={{ marginBottom: '16px' }}>
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th style={{ width: '220px' }}>SPECIFICATION PARAMETER</th>
+                          <th>EXTRACTED VALUE / METADATA</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td className="mono font-bold">PAGE TITLE (&lt;title&gt;)</td>
+                          <td style={{ color: '#fbbf24', fontWeight: 600 }}>{scrapeResult.analysis.title || 'Untitled Document'}</td>
+                        </tr>
+                        <tr>
+                          <td className="mono font-bold">META DESCRIPTION</td>
+                          <td>{scrapeResult.analysis.metaDescription || '<span class="muted">[Empty or not declared]</span>'}</td>
+                        </tr>
+                        <tr>
+                          <td className="mono font-bold">META KEYWORDS</td>
+                          <td>{scrapeResult.analysis.metaKeywords || '<span class="muted">[Not declared]</span>'}</td>
+                        </tr>
+                        <tr>
+                          <td className="mono font-bold">BODY TEXT WORD COUNT</td>
+                          <td className="mono font-bold" style={{ color: '#38bdf8' }}>
+                            {Number(scrapeResult.analysis.wordCount).toLocaleString()} words (stripped HTML text)
+                          </td>
+                        </tr>
+                        <tr>
+                          <td className="mono font-bold">CANONICAL URL</td>
+                          <td className="mono">{scrapeResult.analysis.canonicalUrl || 'None specified'}</td>
+                        </tr>
+                        <tr>
+                          <td className="mono font-bold">FAVICON URL</td>
+                          <td className="mono">{scrapeResult.analysis.faviconUrl || 'Default icon'}</td>
+                        </tr>
+                        <tr>
+                          <td className="mono font-bold">OPEN GRAPH TAGS</td>
+                          <td>
+                            <div><strong>og:title:</strong> {scrapeResult.analysis.openGraph.title || 'N/A'}</div>
+                            <div><strong>og:description:</strong> {scrapeResult.analysis.openGraph.description || 'N/A'}</div>
+                            <div><strong>og:image:</strong> {scrapeResult.analysis.openGraph.image || 'N/A'}</div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Headings Breakdown */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', marginBottom: '16px' }}>
+                    <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                      <span className="mono text-xs font-bold" style={{ color: '#e4e4e7' }}>
+                        H1 HEADINGS ({scrapeResult.analysis.headingsCounts.h1})
+                      </span>
+                      <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#a1a1aa' }}>
+                        {scrapeResult.analysis.headings.h1.length > 0 ? (
+                          scrapeResult.analysis.headings.h1.map((h, i) => <li key={i}>{h}</li>)
+                        ) : (
+                          <li className="muted">No H1 tags found</li>
+                        )}
+                      </ul>
                     </div>
-                    <div>
-                      <h2 className="srb-name">{scrapeResult.metadata.title}</h2>
-                      <span className="srb-callsign">{scrapeResult.metadata.callsign} &bull; {scrapeResult.metadata.email}</span>
-                      <span className="srb-role-pill">{scrapeResult.metadata.role}</span>
+
+                    <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                      <span className="mono text-xs font-bold" style={{ color: '#e4e4e7' }}>
+                        H2 HEADINGS ({scrapeResult.analysis.headingsCounts.h2})
+                      </span>
+                      <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#a1a1aa', maxHeight: '140px', overflowY: 'auto' }}>
+                        {scrapeResult.analysis.headings.h2.length > 0 ? (
+                          scrapeResult.analysis.headings.h2.map((h, i) => <li key={i}>{h}</li>)
+                        ) : (
+                          <li className="muted">No H2 tags found</li>
+                        )}
+                      </ul>
+                    </div>
+
+                    <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                      <span className="mono text-xs font-bold" style={{ color: '#e4e4e7' }}>
+                        H3 HEADINGS ({scrapeResult.analysis.headingsCounts.h3})
+                      </span>
+                      <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#a1a1aa', maxHeight: '140px', overflowY: 'auto' }}>
+                        {scrapeResult.analysis.headings.h3.length > 0 ? (
+                          scrapeResult.analysis.headings.h3.map((h, i) => <li key={i}>{h}</li>)
+                        ) : (
+                          <li className="muted">No H3 tags found</li>
+                        )}
+                      </ul>
                     </div>
                   </div>
 
-                  {/* Scraped Telemetry Cards */}
-                  <div className="srb-stats-row">
-                    <div className="srb-stat-card">
-                      <span className="srb-stat-lbl">COMBAT SCORE</span>
-                      <span className="srb-stat-val gold">{Number(scrapeResult.metadata.combatScore || 0).toLocaleString()}</span>
+                  {/* Hyperlinks Internal vs External */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+                    <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                      <span className="mono text-xs font-bold" style={{ color: '#34d399' }}>
+                        INTERNAL LINKS ({scrapeResult.analysis.linksSummary.internal})
+                      </span>
+                      <div style={{ maxHeight: '180px', overflowY: 'auto', fontSize: '11px', marginTop: '6px' }}>
+                        {scrapeResult.analysis.internalLinks.map((l, i) => (
+                          <div key={i} style={{ padding: '3px 0', borderBottom: '1px solid #1f1f23', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ color: '#e4e4e7' }}>{l.text}</span> &rarr; <span className="mono" style={{ color: '#71717a' }}>{l.href}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div className="srb-stat-card">
-                      <span className="srb-stat-lbl">CONFIRMED KILLS</span>
-                      <span className="srb-stat-val">{scrapeResult.metadata.confirmedKills || 0}</span>
-                    </div>
-                    <div className="srb-stat-card">
-                      <span className="srb-stat-lbl">MAX SURVIVED WAVE</span>
-                      <span className="srb-stat-val">WAVE {scrapeResult.metadata.maxWave || 0}</span>
-                    </div>
-                    <div className="srb-stat-card">
-                      <span className="srb-stat-lbl">MISSIONS LOGGED</span>
-                      <span className="srb-stat-val">{scrapeResult.metadata.missionsLogged || 0} RUNS</span>
+
+                    <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                      <span className="mono text-xs font-bold" style={{ color: '#f87171' }}>
+                        EXTERNAL LINKS ({scrapeResult.analysis.linksSummary.external})
+                      </span>
+                      <div style={{ maxHeight: '180px', overflowY: 'auto', fontSize: '11px', marginTop: '6px' }}>
+                        {scrapeResult.analysis.externalLinks.map((l, i) => (
+                          <div key={i} style={{ padding: '3px 0', borderBottom: '1px solid #1f1f23', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            <span style={{ color: '#e4e4e7' }}>{l.text}</span> &rarr; <span className="mono" style={{ color: '#f87171' }}>{l.href}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Equipped Weapons from Scraped Profile */}
-                  <div className="srb-weapons-box">
-                    <span className="srb-sec-title">SCRAPED REQUISITIONED ARMAMENTS:</span>
-                    <div className="srb-weap-chips">
-                      {scrapeResult.metadata.equippedWeapons && scrapeResult.metadata.equippedWeapons.length > 0 ? (
-                        scrapeResult.metadata.equippedWeapons.map((w, i) => (
-                          <span key={i} className="srb-weap-chip">⚔ {w}</span>
-                        ))
-                      ) : (
-                        <span className="muted text-xs">Standard Vanguard Issue Pistol</span>
-                      )}
+                  {/* Scripts, Stylesheets & Images References */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+                    <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                      <span className="mono text-xs font-bold" style={{ color: '#a855f7' }}>
+                        SCRIPTS ({scrapeResult.analysis.scriptsCount})
+                      </span>
+                      <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '11px', marginTop: '6px' }}>
+                        {scrapeResult.analysis.scripts.map((s, i) => (
+                          <div key={i} className="mono" style={{ color: '#c084fc', padding: '2px 0' }}>&bull; {s}</div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Raw Telemetry Summary */}
-                  <div className="srb-summary-quote">
-                    <p>{scrapeResult.telemetrySummary || scrapeResult.metadata.description}</p>
-                    <span className="srb-url-echo">TARGET URL: {scrapeResult.url}</span>
+                    <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                      <span className="mono text-xs font-bold" style={{ color: '#38bdf8' }}>
+                        STYLESHEETS ({scrapeResult.analysis.stylesheetsCount})
+                      </span>
+                      <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '11px', marginTop: '6px' }}>
+                        {scrapeResult.analysis.stylesheets.map((c, i) => (
+                          <div key={i} className="mono" style={{ color: '#7dd3fc', padding: '2px 0' }}>&bull; {c}</div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                      <span className="mono text-xs font-bold" style={{ color: '#f59e0b' }}>
+                        IMAGES ({scrapeResult.analysis.imagesCount})
+                      </span>
+                      <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '11px', marginTop: '6px' }}>
+                        {scrapeResult.analysis.images.map((img, i) => (
+                          <div key={i} className="mono" style={{ color: '#fcd34d', padding: '2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            &bull; {img.src}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

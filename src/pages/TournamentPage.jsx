@@ -75,6 +75,12 @@ export default function TournamentPage() {
     scheduled_time: '2026-10-25 18:00 UTC'
   });
 
+  // Admin Web Scraper (Assignment VIII Specification) State
+  const [adminScraperUrl, setAdminScraperUrl] = useState('');
+  const [adminScrapeResult, setAdminScrapeResult] = useState(null);
+  const [isScrapingAdmin, setIsScrapingAdmin] = useState(false);
+  const [adminScrapeError, setAdminScrapeError] = useState(null);
+
   // Load Tournament Records (AJAX load with Retry path)
   const loadTournaments = useCallback(async () => {
     setIsLoading(true);
@@ -388,6 +394,38 @@ export default function TournamentPage() {
     }
   };
 
+  // Admin Web Scraper Execution (Assignment VIII)
+  const handleAdminScrapeUrl = async (e) => {
+    if (e) e.preventDefault();
+    if (!adminScraperUrl.trim()) return;
+
+    setIsScrapingAdmin(true);
+    setAdminScrapeError(null);
+    setAdminScrapeResult(null);
+
+    try {
+      const res = await fetch('/api/analyzer/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: adminScraperUrl.trim() })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setAdminScrapeResult(data);
+        notify(`Web extraction completed for ${adminScraperUrl}!`, 'success');
+      } else {
+        setAdminScrapeError(data.message || 'Scrape operation failed.');
+        notify(data.message || 'Scrape failed.', 'error');
+      }
+    } catch (err) {
+      setAdminScrapeError('Network error or server timeout while contacting web analyzer endpoint.');
+      notify('Network error contacting web scraper.', 'error');
+    } finally {
+      setIsScrapingAdmin(false);
+    }
+  };
+
+
   // Compound Filtering logic
   const filteredMatches = matches.filter((m) => {
     if (highlightCategory !== 'ALL' && m.category !== highlightCategory) return false;
@@ -577,23 +615,82 @@ export default function TournamentPage() {
                 </span>
               </div>
 
-              {/* Storage Telemetry Banner (Session Storage + Local Storage Indicators) */}
+              {/* Storage Telemetry Banner (Session Storage + Local Storage Indicators with Fetch Buttons) */}
               <div className="storage-monitor-box">
                 <div className="smb-header">
-                  <span className="smb-dot" />
-                  <span>CLIENT STORAGE TELEMETRY</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className="smb-dot" />
+                    <span>CLIENT STORAGE TELEMETRY // SESSION & LOCAL</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      className="ref-pill-btn"
+                      style={{ fontSize: '11px', padding: '4px 10px', height: 'auto', background: '#18181b', color: '#60a5fa', borderColor: '#3b82f6' }}
+                      onClick={() => {
+                        try {
+                          const s = sessionStorage.getItem('applied_tournament_session');
+                          if (s) {
+                            const parsed = JSON.parse(s);
+                            setSessionAppData(parsed);
+                            notify(`FETCHED SESSION STORAGE: Match [${parsed.matchCode}] applied. (Note: Will be lost if page is closed/refreshed!)`, 'success');
+                          } else {
+                            setSessionAppData(null);
+                            notify('SESSION STORAGE is empty. Apply for a match first or it expired on refresh.', 'info');
+                          }
+                        } catch {
+                          notify('Error reading Session Storage.', 'error');
+                        }
+                      }}
+                      title="Fetch current Session Storage record (cleared automatically on page refresh)"
+                    >
+                      ⚡ FETCH SESSION STORAGE
+                    </button>
+                    <button
+                      type="button"
+                      className="ref-pill-btn"
+                      style={{ fontSize: '11px', padding: '4px 10px', height: 'auto', background: '#18181b', color: '#34d399', borderColor: '#10b981' }}
+                      onClick={() => {
+                        try {
+                          const l = localStorage.getItem('tournament_applications_history');
+                          const list = l ? JSON.parse(l) : [];
+                          setLocalAppData(list);
+                          notify(`FETCHED LOCAL STORAGE: ${list.length} persisted tournament applications retrieved.`, 'success');
+                        } catch {
+                          notify('Error reading Local Storage.', 'error');
+                        }
+                      }}
+                      title="Fetch persistent Local Storage history"
+                    >
+                      💾 FETCH LOCAL STORAGE
+                    </button>
+                  </div>
                 </div>
                 <div className="smb-content">
                   <div className="smb-line">
-                    <span className="smb-label">SESSION STORAGE:</span>
-                    <span className="smb-val">
-                      {sessionAppData ? `${sessionAppData.matchCode} (${sessionAppData.scheduledTime})` : 'No active session'}
+                    <span className="smb-label">SESSION STORAGE (VOLATILE):</span>
+                    <span className="smb-val" style={{ color: sessionAppData ? '#60a5fa' : '#71717a' }}>
+                      {sessionAppData ? (
+                        <span>
+                          <strong>{sessionAppData.matchCode}</strong> &bull; {sessionAppData.title} (⏰ {sessionAppData.scheduledTime})
+                          <em style={{ marginLeft: '8px', color: '#f87171', fontSize: '11px' }}>[Transient: Will vanish on refresh]</em>
+                        </span>
+                      ) : (
+                        'No session data fetched (Apply or click Fetch)'
+                      )}
                     </span>
                   </div>
                   <div className="smb-line">
-                    <span className="smb-label">LOCAL STORAGE:</span>
-                    <span className="smb-val">
-                      {localAppData.length} saved tournament applications
+                    <span className="smb-label">LOCAL STORAGE (PERSISTENT):</span>
+                    <span className="smb-val" style={{ color: localAppData.length > 0 ? '#34d399' : '#71717a' }}>
+                      {localAppData.length > 0 ? (
+                        <span>
+                          <strong>{localAppData.length} applications saved</strong>: {localAppData.map(a => a.matchCode).slice(0, 4).join(', ')}
+                          {localAppData.length > 4 ? ` +${localAppData.length - 4} more` : ''}
+                        </span>
+                      ) : (
+                        'No local storage records'
+                      )}
                     </span>
                   </div>
                 </div>
@@ -1198,6 +1295,238 @@ export default function TournamentPage() {
                     </tbody>
                   </table>
                 </div>
+              </div>
+
+              {/* Assignment VIII: Competitor Games & Web Scraper Application */}
+              <div className="admin-card" style={{ gridColumn: '1 / -1' }}>
+                <div className="ac-header">
+                  <div>
+                    <span className="role-pill admin" style={{ marginRight: '8px' }}>ASSIGNMENT VIII</span>
+                    <h3 style={{ display: 'inline' }}>COMPETITOR WEB SCRAPER & DOM ANALYZER</h3>
+                  </div>
+                  <span className="ac-counter">15-POINT DOM EXTRACTION SPEC</span>
+                </div>
+                <p style={{ color: '#a1a1aa', fontSize: '13px', margin: '4px 0 16px' }}>
+                  Enter any competitor game URL or target webpage. The PHP script fetches the raw HTML and extracts Page Title, Meta Description & Keywords, Charset, Lang, Canonical, Favicon, Open Graph, H1-H3 Headings, Classified Hyperlinks (Internal vs External), Images, Scripts/Stylesheets, Page Size in KB, and visible text Word Count.
+                </p>
+
+                {/* Scraper Form */}
+                <form className="admin-create-form" onSubmit={handleAdminScrapeUrl}>
+                  <div className="acf-grid" style={{ gridTemplateColumns: '1fr auto auto' }}>
+                    <input
+                      type="url"
+                      placeholder="Enter target website URL e.g. https://store.steampowered.com/ or https://en.wikipedia.org/wiki/Web_scraping"
+                      value={adminScraperUrl}
+                      onChange={(e) => setAdminScraperUrl(e.target.value)}
+                      required
+                      style={{ fontSize: '13px' }}
+                    />
+                    <button
+                      type="button"
+                      className="ref-pill-btn"
+                      onClick={() => setAdminScraperUrl('https://en.wikipedia.org/wiki/Web_scraping')}
+                      title="Quick test URL"
+                    >
+                      SAMPLE URL
+                    </button>
+                    <button
+                      type="submit"
+                      className="ref-pill-btn active"
+                      disabled={isScrapingAdmin}
+                    >
+                      {isScrapingAdmin ? 'ANALYZING DOM...' : '🔍 SCRAPE WEBPAGE DETAILS'}
+                    </button>
+                  </div>
+                </form>
+
+                {adminScrapeError && (
+                  <div className="sc-error-banner" style={{ marginTop: '14px' }}>
+                    <span>⚠ {adminScrapeError}</span>
+                  </div>
+                )}
+
+                {/* Extracted Details Display (Neatly Formatted Tables & Lists) */}
+                {adminScrapeResult && adminScrapeResult.analysis && (
+                  <div style={{ marginTop: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid #27272a', paddingBottom: '8px' }}>
+                      <span className="mono" style={{ color: '#4ade80', fontSize: '13px', fontWeight: 'bold' }}>
+                        ✓ STATUS {adminScrapeResult.httpStatus} // RAW HTML SIZE: {adminScrapeResult.analysis.pageSizeKB} KB ({adminScrapeResult.analysis.pageSizeBytes} bytes)
+                      </span>
+                      <span className="mono text-xs" style={{ color: '#71717a' }}>SCRAPED AT: {adminScrapeResult.scrapedAt}</span>
+                    </div>
+
+                    {/* Overview Key-Value Table */}
+                    <div className="admin-table-wrap" style={{ marginBottom: '16px' }}>
+                      <table className="admin-table">
+                        <thead>
+                          <tr>
+                            <th style={{ width: '220px' }}>SPECIFICATION PARAMETER</th>
+                            <th>EXTRACTED VALUE / METADATA</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td className="mono font-bold">PAGE TITLE (&lt;title&gt;)</td>
+                            <td style={{ color: '#fbbf24', fontWeight: 600 }}>{adminScrapeResult.analysis.title || 'None found'}</td>
+                          </tr>
+                          <tr>
+                            <td className="mono font-bold">META DESCRIPTION</td>
+                            <td>{adminScrapeResult.analysis.metaDescription || '<span class="muted">[Empty or not declared]</span>'}</td>
+                          </tr>
+                          <tr>
+                            <td className="mono font-bold">META KEYWORDS</td>
+                            <td>{adminScrapeResult.analysis.metaKeywords || '<span class="muted">[Not declared]</span>'}</td>
+                          </tr>
+                          <tr>
+                            <td className="mono font-bold">CHARACTER ENCODING / CHARSET</td>
+                            <td className="mono">{adminScrapeResult.analysis.charset}</td>
+                          </tr>
+                          <tr>
+                            <td className="mono font-bold">PAGE LANGUAGE (&lt;html lang&gt;)</td>
+                            <td className="mono">{adminScrapeResult.analysis.language}</td>
+                          </tr>
+                          <tr>
+                            <td className="mono font-bold">CANONICAL URL</td>
+                            <td className="mono">{adminScrapeResult.analysis.canonicalUrl || 'None specified'}</td>
+                          </tr>
+                          <tr>
+                            <td className="mono font-bold">FAVICON URL</td>
+                            <td className="mono">{adminScrapeResult.analysis.faviconUrl || 'Default favicon'}</td>
+                          </tr>
+                          <tr>
+                            <td className="mono font-bold">WORD COUNT (BODY TEXT)</td>
+                            <td className="mono font-bold" style={{ color: '#38bdf8' }}>
+                              {Number(adminScrapeResult.analysis.wordCount).toLocaleString()} words (visible text stripped of tags)
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="mono font-bold">OPEN GRAPH TAGS (SOCIAL PREVIEW)</td>
+                            <td>
+                              <div><strong>og:title:</strong> {adminScrapeResult.analysis.openGraph.title || 'N/A'}</div>
+                              <div><strong>og:description:</strong> {adminScrapeResult.analysis.openGraph.description || 'N/A'}</div>
+                              <div><strong>og:image:</strong> {adminScrapeResult.analysis.openGraph.image || 'N/A'}</div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Headings Breakdown (H1, H2, H3) */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px', marginBottom: '16px' }}>
+                      <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                        <span className="mono text-xs font-bold" style={{ color: '#e4e4e7' }}>
+                          H1 HEADINGS ({adminScrapeResult.analysis.headingsCounts.h1})
+                        </span>
+                        <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#a1a1aa' }}>
+                          {adminScrapeResult.analysis.headings.h1.length > 0 ? (
+                            adminScrapeResult.analysis.headings.h1.map((h, i) => <li key={i}>{h}</li>)
+                          ) : (
+                            <li className="muted">No H1 tags found</li>
+                          )}
+                        </ul>
+                      </div>
+
+                      <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                        <span className="mono text-xs font-bold" style={{ color: '#e4e4e7' }}>
+                          H2 HEADINGS ({adminScrapeResult.analysis.headingsCounts.h2})
+                        </span>
+                        <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#a1a1aa', maxHeight: '140px', overflowY: 'auto' }}>
+                          {adminScrapeResult.analysis.headings.h2.length > 0 ? (
+                            adminScrapeResult.analysis.headings.h2.map((h, i) => <li key={i}>{h}</li>)
+                          ) : (
+                            <li className="muted">No H2 tags found</li>
+                          )}
+                        </ul>
+                      </div>
+
+                      <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                        <span className="mono text-xs font-bold" style={{ color: '#e4e4e7' }}>
+                          H3 HEADINGS ({adminScrapeResult.analysis.headingsCounts.h3})
+                        </span>
+                        <ul style={{ margin: '8px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#a1a1aa', maxHeight: '140px', overflowY: 'auto' }}>
+                          {adminScrapeResult.analysis.headings.h3.length > 0 ? (
+                            adminScrapeResult.analysis.headings.h3.map((h, i) => <li key={i}>{h}</li>)
+                          ) : (
+                            <li className="muted">No H3 tags found</li>
+                          )}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Classified Hyperlinks: Internal vs External */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '16px' }}>
+                      <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span className="mono text-xs font-bold" style={{ color: '#34d399' }}>
+                            INTERNAL LINKS ({adminScrapeResult.analysis.linksSummary.internal})
+                          </span>
+                          <span className="mono text-xs" style={{ color: '#71717a' }}>Same Domain</span>
+                        </div>
+                        <div style={{ maxHeight: '180px', overflowY: 'auto', fontSize: '11px' }}>
+                          {adminScrapeResult.analysis.internalLinks.map((l, i) => (
+                            <div key={i} style={{ padding: '3px 0', borderBottom: '1px solid #1f1f23', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <span style={{ color: '#e4e4e7' }}>{l.text}</span> &rarr; <span className="mono" style={{ color: '#71717a' }}>{l.href}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                          <span className="mono text-xs font-bold" style={{ color: '#f87171' }}>
+                            EXTERNAL LINKS ({adminScrapeResult.analysis.linksSummary.external})
+                          </span>
+                          <span className="mono text-xs" style={{ color: '#71717a' }}>Outbound Domain</span>
+                        </div>
+                        <div style={{ maxHeight: '180px', overflowY: 'auto', fontSize: '11px' }}>
+                          {adminScrapeResult.analysis.externalLinks.map((l, i) => (
+                            <div key={i} style={{ padding: '3px 0', borderBottom: '1px solid #1f1f23', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <span style={{ color: '#e4e4e7' }}>{l.text}</span> &rarr; <span className="mono" style={{ color: '#f87171' }}>{l.href}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Scripts, Stylesheets & Images References */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '14px' }}>
+                      <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                        <span className="mono text-xs font-bold" style={{ color: '#a855f7' }}>
+                          SCRIPT REFERENCES ({adminScrapeResult.analysis.scriptsCount})
+                        </span>
+                        <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '11px', marginTop: '6px' }}>
+                          {adminScrapeResult.analysis.scripts.map((s, i) => (
+                            <div key={i} className="mono" style={{ color: '#c084fc', padding: '2px 0' }}>&bull; {s}</div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                        <span className="mono text-xs font-bold" style={{ color: '#38bdf8' }}>
+                          STYLESHEETS ({adminScrapeResult.analysis.stylesheetsCount})
+                        </span>
+                        <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '11px', marginTop: '6px' }}>
+                          {adminScrapeResult.analysis.stylesheets.map((c, i) => (
+                            <div key={i} className="mono" style={{ color: '#7dd3fc', padding: '2px 0' }}>&bull; {c}</div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div style={{ background: '#121214', border: '1px solid #27272a', padding: '12px' }}>
+                        <span className="mono text-xs font-bold" style={{ color: '#f59e0b' }}>
+                          IMAGE SOURCES ({adminScrapeResult.analysis.imagesCount})
+                        </span>
+                        <div style={{ maxHeight: '120px', overflowY: 'auto', fontSize: '11px', marginTop: '6px' }}>
+                          {adminScrapeResult.analysis.images.map((img, i) => (
+                            <div key={i} className="mono" style={{ color: '#fcd34d', padding: '2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              &bull; {img.src}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

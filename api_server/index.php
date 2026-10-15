@@ -761,11 +761,11 @@ if (preg_match('#^/api/admin/tournaments/delete/?$#', $uri) && $method === 'POST
 // POST /api/analyzer/scrape -> Scrape a player profile URL or any target web link
 if (preg_match('#^/api/analyzer/scrape/?$#', $uri) && $method === 'POST') {
     $data = getJsonInput();
-    $targetUrl = trim($data['url'] ?? '');
+    $targetUrl = trim($data['url'] ?? $_POST['url'] ?? $_GET['url'] ?? '');
 
     if (empty($targetUrl)) {
         http_response_code(400);
-        echo json_encode(["message" => "Target profile URL is required."]);
+        echo json_encode(["message" => "Target URL is required."]);
         exit;
     }
 
@@ -813,57 +813,222 @@ if (preg_match('#^/api/analyzer/scrape/?$#', $uri) && $method === 'POST') {
         }
     }
 
-    // Fallback: Safe public URL fetcher (SSRF-protected, Chapter 14)
+    // Fallback: Safe public URL fetcher & competitor web page analyzer (Assignment VIII Specification)
+    if (!filter_var($targetUrl, FILTER_VALIDATE_URL)) {
+        http_response_code(400);
+        echo json_encode(["success" => false, "message" => "Invalid URL format provided. Please enter a valid HTTP/HTTPS URL."]);
+        exit;
+    }
+
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $targetUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 6);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'LastZone-Tactical-Analyzer/1.0 (Academic Demonstration)');
+    curl_setopt($ch, CURLOPT_MAXREDIRS, 4);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 LastZoneTactical/1.0');
     $html = curl_exec($ch);
+    $curlErr = curl_error($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $contentLength = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     curl_close($ch);
 
-    if ($html) {
-        $doc = new DOMDocument();
-        @$doc->loadHTML($html);
-        $title = $doc->getElementsByTagName('title')->item(0)?->textContent ?? 'Unknown Target';
-        
-        $metaTags = $doc->getElementsByTagName('meta');
-        $desc = '';
-        foreach ($metaTags as $m) {
-            if (strtolower($m->getAttribute('name')) === 'description' || strtolower($m->getAttribute('property')) === 'og:description') {
-                $desc = $m->getAttribute('content');
-                break;
-            }
-        }
-
+    if ($html === false || empty($html)) {
+        http_response_code(502);
         echo json_encode([
-            "success" => true,
-            "url" => $targetUrl,
-            "sourceType" => "PUBLIC_WEB_PAGE",
-            "httpStatus" => $httpCode,
-            "scrapedAt" => date('Y-m-d H:i:s T'),
-            "metadata" => [
-                "title" => trim($title),
-                "description" => $desc ?: "Extracted via LastZone DOM scraper.",
-                "bodyLengthBytes" => strlen($html)
-            ]
+            "success" => false,
+            "message" => "Failed to reach target server or request timed out: " . ($curlErr ?: "HTTP status $httpCode")
         ]);
         exit;
     }
 
-    // Default simulation response
+    // Measure raw HTML size in KB
+    $pageSizeBytes = strlen($html);
+    $pageSizeKB = round($pageSizeBytes / 1024, 2);
+
+    // Initialize DOM parser
+    libxml_use_internal_errors(true);
+    $doc = new DOMDocument();
+    @$doc->loadHTML(mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8'));
+    libxml_clear_errors();
+    $xpath = new DOMXPath($doc);
+
+    // 1. Page Title
+    $titleNode = $xpath->query('//title')->item(0);
+    $pageTitle = $titleNode ? trim($titleNode->textContent) : 'Untitled Document';
+
+    // 2. Meta Description
+    $descNode = $xpath->query('//meta[translate(@name, "DESCRIPTION", "description")="description"]')->item(0);
+    $metaDescription = $descNode ? trim($descNode->getAttribute('content')) : '';
+
+    // 3. Meta Keywords
+    $keywordsNode = $xpath->query('//meta[translate(@name, "KEYWORDS", "keywords")="keywords"]')->item(0);
+    $metaKeywords = $keywordsNode ? trim($keywordsNode->getAttribute('content')) : '';
+
+    // 4. Character Encoding / Charset
+    $charsetNode = $xpath->query('//meta[@charset]')->item(0);
+    $charset = $charsetNode ? $charsetNode->getAttribute('charset') : '';
+    if (!$charset) {
+        $httpEquiv = $xpath->query('//meta[translate(@http-equiv, "CONTENT-TYPE", "content-type")="content-type"]')->item(0);
+        if ($httpEquiv && preg_match('/charset=([^;]+)/i', $httpEquiv->getAttribute('content'), $cm)) {
+            $charset = trim($cm[1]);
+        }
+    }
+    if (!$charset) $charset = 'UTF-8 (Inferred)';
+
+    // 5. Language of the page (<html lang="">)
+    $htmlNode = $xpath->query('//html')->item(0);
+    $pageLang = $htmlNode && $htmlNode->getAttribute('lang') ? trim($htmlNode->getAttribute('lang')) : 'Not specified';
+
+    // 6. Canonical URL (<link rel="canonical">)
+    $canonicalNode = $xpath->query('//link[translate(@rel, "CANONICAL", "canonical")="canonical"]')->item(0);
+    $canonicalUrl = $canonicalNode ? trim($canonicalNode->getAttribute('href')) : '';
+
+    // 7. Favicon URL (<link rel="icon"> or <link rel="shortcut icon">)
+    $faviconNode = $xpath->query('//link[contains(translate(@rel, "ICON", "icon"), "icon")]')->item(0);
+    $faviconUrl = $faviconNode ? trim($faviconNode->getAttribute('href')) : '';
+    // Resolve relative favicon
+    if ($faviconUrl && !preg_match('#^https?://#i', $faviconUrl)) {
+        $parsedTarget = parse_url($targetUrl);
+        $baseHost = ($parsedTarget['scheme'] ?? 'http') . '://' . ($parsedTarget['host'] ?? '');
+        $faviconUrl = ltrim($faviconUrl, '/');
+        $faviconUrl = $baseHost . '/' . $faviconUrl;
+    }
+
+    // 8. Open Graph Tags (og:title, og:description, og:image)
+    $ogTitleNode = $xpath->query('//meta[@property="og:title"]')->item(0);
+    $ogDescNode = $xpath->query('//meta[@property="og:description"]')->item(0);
+    $ogImageNode = $xpath->query('//meta[@property="og:image"]')->item(0);
+    $openGraph = [
+        "title" => $ogTitleNode ? trim($ogTitleNode->getAttribute('content')) : '',
+        "description" => $ogDescNode ? trim($ogDescNode->getAttribute('content')) : '',
+        "image" => $ogImageNode ? trim($ogImageNode->getAttribute('content')) : ''
+    ];
+
+    // 9. All Heading tags (<h1> to <h3>)
+    $headings = ["h1" => [], "h2" => [], "h3" => []];
+    foreach (['h1', 'h2', 'h3'] as $hTag) {
+        $nodes = $xpath->query("//$hTag");
+        foreach ($nodes as $n) {
+            $text = trim(preg_replace('/\s+/', ' ', $n->textContent));
+            if (!empty($text)) {
+                $headings[$hTag][] = $text;
+            }
+        }
+    }
+
+    // 10. All Hyperlinks (<a href="">) & Internal vs External classification
+    $targetHost = parse_url($targetUrl, PHP_URL_HOST);
+    $internalLinks = [];
+    $externalLinks = [];
+    $allLinks = [];
+
+    $aNodes = $xpath->query('//a[@href]');
+    foreach ($aNodes as $a) {
+        $href = trim($a->getAttribute('href'));
+        $anchorText = trim(preg_replace('/\s+/', ' ', $a->textContent));
+        if (empty($href) || str_starts_with($href, 'javascript:') || str_starts_with($href, '#')) {
+            continue;
+        }
+
+        $linkObj = [
+            "href" => $href,
+            "text" => mb_substr($anchorText, 0, 80) ?: '[No anchor text]'
+        ];
+        $allLinks[] = $linkObj;
+
+        $linkHost = parse_url($href, PHP_URL_HOST);
+        if (!$linkHost || strcasecmp($linkHost, $targetHost) === 0) {
+            $internalLinks[] = $linkObj;
+        } else {
+            $externalLinks[] = $linkObj;
+        }
+    }
+
+    // 11. All Image sources (<img src="">)
+    $images = [];
+    $imgNodes = $xpath->query('//img[@src]');
+    foreach ($imgNodes as $img) {
+        $src = trim($img->getAttribute('src'));
+        $alt = trim($img->getAttribute('alt'));
+        if (!empty($src)) {
+            $images[] = [
+                "src" => $src,
+                "alt" => $alt ?: '[No Alt Text]'
+            ];
+        }
+    }
+
+    // 12. All Script and Stylesheet references
+    $scripts = [];
+    $scriptNodes = $xpath->query('//script[@src]');
+    foreach ($scriptNodes as $s) {
+        $sSrc = trim($s->getAttribute('src'));
+        if (!empty($sSrc)) {
+            $scripts[] = $sSrc;
+        }
+    }
+
+    $stylesheets = [];
+    $cssNodes = $xpath->query('//link[translate(@rel, "STYLESHEET", "stylesheet")="stylesheet"][@href]');
+    foreach ($cssNodes as $css) {
+        $cHref = trim($css->getAttribute('href'));
+        if (!empty($cHref)) {
+            $stylesheets[] = $cHref;
+        }
+    }
+
+    // 13. Word Count of Body Text (strip HTML tags and count total words)
+    $bodyNode = $xpath->query('//body')->item(0);
+    $bodyHtml = $bodyNode ? $doc->saveHTML($bodyNode) : $html;
+    // Strip script and style blocks first
+    $cleanText = preg_replace('/<(script|style|svg|noscript)\b[^>]*>(.*?)<\/\1>/is', '', $bodyHtml);
+    $cleanText = strip_tags($cleanText);
+    $cleanText = html_entity_decode($cleanText, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $cleanText = trim(preg_replace('/\s+/', ' ', $cleanText));
+    $wordCount = !empty($cleanText) ? str_word_count($cleanText) : 0;
+
     echo json_encode([
         "success" => true,
         "url" => $targetUrl,
-        "sourceType" => "SIMULATED_SCRAPE",
+        "sourceType" => "PUBLIC_WEB_PAGE",
+        "httpStatus" => $httpCode,
         "scrapedAt" => date('Y-m-d H:i:s T'),
-        "metadata" => [
-            "title" => "OPERATIVE PROFILE SCRAPE",
-            "extractedLink" => $targetUrl,
-            "status" => "ONLINE"
+        "analysis" => [
+            "title" => $pageTitle,
+            "metaDescription" => $metaDescription,
+            "metaKeywords" => $metaKeywords,
+            "charset" => $charset,
+            "language" => $pageLang,
+            "canonicalUrl" => $canonicalUrl,
+            "faviconUrl" => $faviconUrl,
+            "pageSizeKB" => $pageSizeKB,
+            "pageSizeBytes" => $pageSizeBytes,
+            "wordCount" => $wordCount,
+            "openGraph" => $openGraph,
+            "headings" => $headings,
+            "headingsCounts" => [
+                "h1" => count($headings['h1']),
+                "h2" => count($headings['h2']),
+                "h3" => count($headings['h3'])
+            ],
+            "linksSummary" => [
+                "total" => count($allLinks),
+                "internal" => count($internalLinks),
+                "external" => count($externalLinks)
+            ],
+            "internalLinks" => array_slice($internalLinks, 0, 50),
+            "externalLinks" => array_slice($externalLinks, 0, 50),
+            "images" => array_slice($images, 0, 50),
+            "imagesCount" => count($images),
+            "scripts" => $scripts,
+            "scriptsCount" => count($scripts),
+            "stylesheets" => $stylesheets,
+            "stylesheetsCount" => count($stylesheets)
         ]
     ]);
     exit;
