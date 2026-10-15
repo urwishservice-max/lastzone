@@ -371,36 +371,43 @@ body.theme-charcoal .hud-header {
 }
 
 .hud-btn {
-  background: none;
-  border: 1px solid var(--hairline-color);
-  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #d8dadd;
+  padding: 6px 12px;
   font-family: var(--font-mono);
   font-size: 0.68rem;
   font-weight: 600;
-  letter-spacing: 0.2em;
-  color: var(--text-primary);
+  letter-spacing: 0.14em;
+  color: #111318;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  transition: border-color 0.3s, background-color 0.3s;
+  gap: 7px;
+  transition: all 0.2s ease;
+  border-radius: 2px;
 }
 
 .hud-btn:hover {
-  border-color: var(--accent-red);
+  border-color: #111318;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .hud-btn .btn-indicator {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background-color: var(--text-muted);
-  transition: background-color 0.3s;
+  background-color: #9ca3af;
+  transition: background-color 0.2s ease;
+}
+
+.hud-btn:hover .btn-indicator {
+  background-color: var(--accent-red);
 }
 
 .hud-btn.active .btn-indicator {
   background-color: var(--accent-red);
-  box-shadow: 0 0 6px var(--accent-red);
+  box-shadow: 0 0 5px var(--accent-red);
 }
 
 /* ==========================================================================

@@ -63,13 +63,13 @@ export default function TacticalHUD() {
         {/* Weapons & Event Handling Lab */}
         <button
           id="weapons-nav-btn"
-          className="hud-btn weapons-nav-btn"
+          className="hud-btn"
           onClick={() => navigate('/weapons')}
           aria-label="Weapons Calibration Laboratory"
-          title="Interactive Weapons & JS Event Lab"
+          title="Interactive Weapons & Calibration Lab"
         >
-          <span className="btn-indicator" style={{ background: '#00e5ff', boxShadow: '0 0 6px rgba(0, 229, 255, 0.7)' }} />
-          <span className="btn-label" style={{ color: '#00e5ff', fontWeight: 600 }}>⚔ WEAPONS LAB</span>
+          <span className="btn-indicator" />
+          <span className="btn-label">WEAPONS LAB</span>
         </button>
 
         {/* Tournament Center */}
@@ -80,8 +80,8 @@ export default function TacticalHUD() {
           aria-label="Tournament Match Center"
           title="Tournament Matches & Player Profile History"
         >
-          <span className="btn-indicator" style={{ background: '#f59e0b', boxShadow: '0 0 6px rgba(245, 158, 11, 0.7)' }} />
-          <span className="btn-label" style={{ color: '#f59e0b', fontWeight: 600 }}>🏆 TOURNAMENT</span>
+          <span className="btn-indicator" />
+          <span className="btn-label">TOURNAMENT</span>
         </button>
 
         {/* Profile Link Scraper */}
@@ -92,8 +92,8 @@ export default function TacticalHUD() {
           aria-label="Player Profile Link Scraper"
           title="DOM Parser & Telemetry Scraper Tool"
         >
-          <span className="btn-indicator" style={{ background: '#a855f7', boxShadow: '0 0 6px rgba(168, 85, 247, 0.7)' }} />
-          <span className="btn-label" style={{ color: '#c084fc', fontWeight: 600 }}>⚡ SCRAPER</span>
+          <span className="btn-indicator" />
+          <span className="btn-label">SCRAPER</span>
         </button>
 
         {/* Friends & Network Link */}
@@ -104,8 +104,8 @@ export default function TacticalHUD() {
           aria-label="Operative Friends Network"
           title="Drag and Drop Tactical Network Tree"
         >
-          <span className="btn-indicator" style={{ background: '#10b981', boxShadow: '0 0 6px rgba(16, 185, 129, 0.7)' }} />
-          <span className="btn-label" style={{ color: '#10b981', fontWeight: 600 }}>⎔ SQUAD NETWORK</span>
+          <span className="btn-indicator" />
+          <span className="btn-label">SQUAD NETWORK</span>
         </button>
 
         {/* Leaderboard Link */}
@@ -116,7 +116,7 @@ export default function TacticalHUD() {
           aria-label="View Global Leaderboard"
           title="Global Hall of Fame"
         >
-          <span className="btn-indicator" style={{ background: '#ffd700', boxShadow: '0 0 6px rgba(255, 215, 0, 0.6)' }} />
+          <span className="btn-indicator" />
           <span className="btn-label">LEADERBOARD</span>
         </button>
 
@@ -128,8 +128,8 @@ export default function TacticalHUD() {
           aria-label="Launch LastZone Combat Simulation"
           title="Play LastZone Game"
         >
-          <span className="btn-indicator" style={{ background: '#d7263d', boxShadow: '0 0 8px rgba(215, 38, 61, 0.8)' }} />
-          <span className="btn-label" style={{ color: '#fff', fontWeight: 600 }}>▶ PLAY LASTZONE</span>
+          <span className="btn-indicator" style={{ background: 'var(--accent-red)' }} />
+          <span className="btn-label" style={{ fontWeight: 700, letterSpacing: '0.12em' }}>PLAY LASTZONE</span>
         </button>
 
         {/* Operative Auth Badge / Actions */}

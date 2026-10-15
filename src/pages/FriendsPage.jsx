@@ -336,9 +336,13 @@ export default function FriendsPage() {
 
   return (
     <div className="clean-minimal-page friends-page">
-      {/* Precision Top Editorial Header (Matching Reference Aesthetic) */}
-      <header className="ref-top-header">
+      {/* Precision Top Editorial Header (Matching LastZone High Command Design System) */}
+      <header className="ref-top-header lz-top-header">
         <div className="ref-top-left">
+          <div className="lz-brand-block" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+            <span className="lz-brand-logo">LASTZONE</span>
+            <span className="lz-brand-command">HIGH COMMAND</span>
+          </div>
           <div className="ref-time-stamp">
             <span className="ref-time-main">02:11<span className="ref-time-sub">AM</span></span>
             <div className="ref-date-stack">
@@ -349,24 +353,32 @@ export default function FriendsPage() {
           </div>
         </div>
 
-        <div className="ref-top-center">
-          <div className="ref-status-box">
-            <span className="ref-sb-code">NETWORK TOPOLOGY // SECTOR 07</span>
-            <p className="ref-sb-desc">
-              BLACK = ACCEPTED ACTIVE &bull; RED = PENDING REQUEST &bull; DRAG TO ADD OR REMOVE
-            </p>
-          </div>
-        </div>
-
-        <div className="ref-top-right">
-          <button className="ref-pill-btn" onClick={() => navigate('/leaderboard')}>
-            LEADERBOARD
+        <div className="ref-top-right lz-nav-tabs">
+          <button className="lz-nav-tab-btn" onClick={() => navigate('/tournaments')}>
+            Tournament Center
           </button>
-          <button className="ref-pill-btn active" onClick={() => navigate('/play')}>
-            COMMENCE RUN
+          <button className="lz-nav-tab-btn" onClick={() => navigate('/tournaments?tab=profile')}>
+            Operative Profile
           </button>
-          <button className="ref-icon-btn" onClick={loadData} title="Sync Network">
-            ↻
+          <button className="lz-nav-tab-btn" onClick={() => navigate('/tournaments?tab=admin')}>
+            Admin Dashboard
+          </button>
+          <button className="lz-nav-tab-btn" onClick={() => navigate('/weapons')}>
+            Weapons Requisition
+          </button>
+          <button className="lz-nav-tab-btn active" onClick={() => navigate('/friends')}>
+            Squad Network
+          </button>
+          <button className="lz-nav-tab-btn" onClick={() => navigate('/leaderboard')}>
+            Leaderboard
+          </button>
+          <button
+            className="lz-action-btn lz-reload-btn"
+            style={{ marginLeft: '12px' }}
+            onClick={loadData}
+            title="Sync Tactical Network"
+          >
+            ↻ SYNC
           </button>
         </div>
       </header>
@@ -615,15 +627,13 @@ export default function FriendsPage() {
               {positionedNodes.map((node) => {
                 const isSelected = selectedNode && (selectedNode.friendId === node.friendId);
                 const isAccepted = node.isAccepted;
+                const nodeSize = (node.radius + 10) * 2;
                 return (
                   <g
                     key={`node-${node.linkId || node.username}`}
                     className={`ref-satellite-node ${isAccepted ? 'accepted' : 'pending'} ${isSelected ? 'selected' : ''}`}
                     transform={`translate(${node.x}, ${node.y})`}
-                    draggable="true"
-                    onDragStart={(e) => handleNodeDragStart(e, node)}
                     onClick={() => setSelectedNode(node)}
-                    title="Click for telemetry inspection, or drag back to roster to disconnect"
                   >
                     {/* The 3D Sphere matching reference */}
                     <circle
@@ -657,6 +667,29 @@ export default function FriendsPage() {
                     >
                       {isAccepted ? '● ACCEPTED' : '▲ PENDING'}
                     </text>
+
+                    {/* Transparent HTML5 draggable foreignObject hit-area ensuring 100% reliable drag-to-remove in Chromium & Firefox */}
+                    <foreignObject
+                      x={-(node.radius + 14)}
+                      y={-(node.radius + 14)}
+                      width={(node.radius + 14) * 2}
+                      height={(node.radius + 14) * 2 + 28}
+                      style={{ overflow: 'visible' }}
+                    >
+                      <div
+                        xmlns="http://www.w3.org/1999/xhtml"
+                        draggable="true"
+                        onDragStart={(e) => handleNodeDragStart(e, node)}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          cursor: 'grab',
+                          borderRadius: '50%',
+                          userSelect: 'none'
+                        }}
+                        title={`Drag ${node.displayName || node.username} back to Personnel Pool to sever/remove`}
+                      />
+                    </foreignObject>
                   </g>
                 );
               })}
