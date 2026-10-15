@@ -451,8 +451,12 @@ export default function TournamentPage() {
   return (
     <div className="clean-minimal-page tournament-page-wrap">
       {/* Precision Editorial Header */}
-      <header className="ref-top-header">
+      <header className="ref-top-header lz-top-header">
         <div className="ref-top-left">
+          <div className="lz-brand-block" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+            <span className="lz-brand-logo">LASTZONE</span>
+            <span className="lz-brand-command">HIGH COMMAND</span>
+          </div>
           <div className="ref-time-stamp">
             <span className="ref-time-main">02:11<span className="ref-time-sub">AM</span></span>
             <div className="ref-date-stack">
@@ -463,48 +467,39 @@ export default function TournamentPage() {
           </div>
         </div>
 
-        <div className="ref-top-center">
-          <div className="ref-status-box">
-            <span className="ref-sb-code">TOURNAMENT // HIGH COMMAND</span>
-            <p className="ref-sb-desc">
-              COMPOUND FILTERING &bull; SESSION & LOCAL STORAGE &bull; ADMIN DASHBOARD & CRUD
-            </p>
-          </div>
-        </div>
-
-        <div className="ref-top-right">
+        <div className="ref-top-right lz-nav-tabs">
           <button
-            className={`ref-pill-btn ${activeTab === 'TOURNAMENT' ? 'active' : ''}`}
+            className={`lz-nav-tab-btn ${activeTab === 'TOURNAMENT' ? 'active' : ''}`}
             onClick={() => {
               setActiveTab('TOURNAMENT');
               setSearchParams({});
             }}
           >
-            TOURNAMENT CENTER
+            Tournament Center
           </button>
           <button
-            className={`ref-pill-btn ${activeTab === 'PROFILE' ? 'active' : ''}`}
+            className={`lz-nav-tab-btn ${activeTab === 'PROFILE' ? 'active' : ''}`}
             onClick={() => {
               setActiveTab('PROFILE');
               setSearchParams({ tab: 'profile', userId: profileUserId });
             }}
           >
-            OPERATIVE PROFILE
+            Operative Profile
           </button>
           <button
-            className={`ref-pill-btn ${activeTab === 'ADMIN' ? 'active' : ''}`}
+            className={`lz-nav-tab-btn ${activeTab === 'ADMIN' ? 'active' : ''}`}
             onClick={() => {
               setActiveTab('ADMIN');
               setSearchParams({ tab: 'admin' });
             }}
           >
-            ⚡ ADMIN DASHBOARD
+            Admin Dashboard
           </button>
-          <button className="ref-pill-btn" onClick={() => navigate('/weapons')}>
-            WEAPONS REQUISITION
+          <button className="lz-nav-tab-btn" onClick={() => navigate('/weapons')}>
+            Weapons Requisition
           </button>
-          <button className="ref-pill-btn" onClick={() => navigate('/leaderboard')}>
-            LEADERBOARD
+          <button className="lz-nav-tab-btn" onClick={() => navigate('/leaderboard')}>
+            Leaderboard
           </button>
         </div>
       </header>
@@ -520,43 +515,60 @@ export default function TournamentPage() {
 
         {/* TAB 1: TOURNAMENT MATCH CENTER */}
         {activeTab === 'TOURNAMENT' && (
-          <div className="tourney-workspace-grid">
-            {/* LEFT FILTER & ROSTER PANEL */}
-            <aside className="tourney-controls-panel">
-              <div className="tcp-header">
-                <div>
-                  <span className="tcp-tag">FIGURE 10.1 IMPLEMENTATION</span>
-                  <h2 className="tcp-title">MATCH REGISTRY</h2>
-                </div>
-                <button
-                  className="tcp-reload-btn"
-                  onClick={loadTournaments}
-                  disabled={isLoading}
-                  title="Reload 8 records via AJAX"
-                >
-                  ↻ AJAX RELOAD
-                </button>
+          <div className="lz-tourney-dashboard">
+            {/* Page Heading Section with Red Diagonal Accent */}
+            <div className="lz-page-heading-block">
+              <div className="lz-heading-meta">
+                <span className="lz-hud-slant" />
+                <span className="lz-heading-tag">TACTICAL OPERATIONS // TOURNAMENT COMMAND</span>
               </div>
+              <div className="lz-heading-row">
+                <div className="lz-heading-left">
+                  <h1 className="lz-page-title">MATCH REGISTRY</h1>
+                  <p className="lz-page-subtitle">
+                    COMPOUND FILTERING &bull; SESSION & LOCAL STORAGE &bull; ADMIN DASHBOARD & CRUD
+                  </p>
+                </div>
+                <div className="lz-heading-actions">
+                  <button
+                    className="lz-action-btn lz-reload-btn"
+                    onClick={loadTournaments}
+                    disabled={isLoading}
+                    title="Reload tournament records via AJAX"
+                  >
+                    ↻ AJAX RELOAD
+                  </button>
+                  <span className="lz-registry-counter">
+                    DISPLAYING <strong>{filteredMatches.length}</strong> / {matches.length} MATCHES
+                  </span>
+                </div>
+              </div>
+              <div className="lz-heading-divider" />
+            </div>
 
-              {/* Compound Filter: Search Input */}
-              <div className="tcp-search-box">
+            {/* Horizontal Search & Filter Toolbar */}
+            <div className="lz-filter-toolbar">
+              <div className="lz-search-wrapper">
+                <span className="lz-search-icon">🔍</span>
                 <input
                   type="text"
-                  className="ref-search-input"
+                  className="lz-search-input"
                   placeholder="SEARCH MATCH CODE OR TITLE..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
+                {searchQuery && (
+                  <button className="lz-search-clear" onClick={() => setSearchQuery('')}>✕</button>
+                )}
               </div>
 
-              {/* Category Highlight Tabs */}
-              <div className="tcp-category-row">
-                <span className="tcp-flt-label">CATEGORY HIGHLIGHT:</span>
-                <div className="category-chips">
+              <div className="lz-category-group">
+                <span className="lz-filter-label">CATEGORY:</span>
+                <div className="lz-chip-row">
                   {['ALL', 'ELITE', 'TACTICAL', 'MASTERS', 'CHAMPIONSHIP'].map((cat) => (
                     <button
                       key={cat}
-                      className={`cat-chip ${highlightCategory === cat ? 'active' : ''}`}
+                      className={`lz-cat-chip ${highlightCategory === cat ? 'active' : ''}`}
                       onClick={() => setHighlightCategory(cat)}
                     >
                       {cat}
@@ -565,14 +577,13 @@ export default function TournamentPage() {
                 </div>
               </div>
 
-              {/* Multi-Select Compound Filters */}
-              <div className="tcp-dropdowns-row">
-                <div className="tcp-select-group">
-                  <label>MATCH TYPE</label>
+              <div className="lz-dropdowns-group">
+                <div className="lz-select-wrap">
+                  <label>TYPE</label>
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="tcp-select"
+                    className="lz-select"
                   >
                     <option value="ALL">All Types</option>
                     <option value="SOLO">Solo Operations</option>
@@ -581,12 +592,12 @@ export default function TournamentPage() {
                   </select>
                 </div>
 
-                <div className="tcp-select-group">
+                <div className="lz-select-wrap">
                   <label>STATUS</label>
                   <select
                     value={filterStatus}
                     onChange={(e) => setFilterStatus(e.target.value)}
-                    className="tcp-select"
+                    className="lz-select"
                   >
                     <option value="ALL">All Statuses</option>
                     <option value="OPEN">Open Entry</option>
@@ -595,359 +606,418 @@ export default function TournamentPage() {
                   </select>
                 </div>
 
-                <div className="tcp-select-group">
-                  <label>BOUNTY AMOUNT</label>
+                <div className="lz-select-wrap">
+                  <label>BOUNTY</label>
                   <select
                     value={filterAmount}
                     onChange={(e) => setFilterAmount(e.target.value)}
-                    className="tcp-select"
+                    className="lz-select"
                   >
-                    <option value="ALL">Any Amount</option>
-                    <option value="LOW">&lt; 50,000 Credits</option>
-                    <option value="MID">50k - 100k Credits</option>
-                    <option value="HIGH">&gt; 100,000 Credits</option>
+                    <option value="ALL">Any Bounty</option>
+                    <option value="LOW">&lt; 50,000 CR</option>
+                    <option value="MID">50k - 100k CR</option>
+                    <option value="HIGH">&gt; 100,000 CR</option>
                   </select>
                 </div>
               </div>
 
-              {/* Dynamic Action Buttons */}
-              <div className="tcp-dynamic-actions">
-                <button className="ref-pill-btn active" onClick={handleAddFictionalItem}>
-                  + ADD FICTIONAL ITEM
+              <div className="lz-toolbar-actions">
+                <button className="lz-btn-add-item" onClick={handleAddFictionalItem}>
+                  <span className="lz-plus-icon">+</span> ADD FICTIONAL ITEM
                 </button>
-                <span className="tcp-matches-count">
-                  SHOWING <strong>{filteredMatches.length}</strong> OF {matches.length} MATCHES
-                </span>
               </div>
+            </div>
 
-              {/* Storage Telemetry Banner (Session Storage + Local Storage Indicators with Fetch Buttons) */}
-              <div className="storage-monitor-box">
-                <div className="smb-header">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span className="smb-dot" />
-                    <span>CLIENT STORAGE TELEMETRY // SESSION & LOCAL</span>
+            {/* Storage Telemetry: Two Compact Dedicated Panels */}
+            <div className="lz-storage-grid">
+              {/* SESSION STORAGE PANEL */}
+              <div className="lz-storage-card session-card">
+                <div className="lz-storage-header">
+                  <div className="lz-sh-left">
+                    <span className="lz-storage-indicator volatile" />
+                    <div>
+                      <h3 className="lz-storage-title">SESSION STORAGE</h3>
+                      <span className="lz-storage-sub">TRANSIENT &bull; RESETS ON REFRESH</span>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button
-                      type="button"
-                      className="ref-pill-btn"
-                      style={{ fontSize: '11px', padding: '4px 10px', height: 'auto', background: '#18181b', color: '#60a5fa', borderColor: '#3b82f6' }}
-                      onClick={() => {
-                        setHasFetchedSession(true);
-                        try {
-                          const s = sessionStorage.getItem('applied_tournament_session');
-                          if (s) {
-                            const parsed = JSON.parse(s);
-                            const normalized = {
-                              matchId: parsed.matchId || parsed.id || 1,
-                              matchCode: parsed.matchCode || parsed.match_code || 'TM-101',
-                              title: parsed.title || 'SECTOR 07 CYBERNETIC CLASH',
-                              category: parsed.category || 'ELITE',
-                              scheduledTime: parsed.scheduledTime || parsed.scheduled_time || '2026-10-18 18:00 UTC',
-                              prizeAmount: parsed.prizeAmount || parsed.prize_amount || 50000,
-                              applicantUser: parsed.applicantUser || (user ? user.username : 'cadet_operative'),
-                              appliedAt: parsed.appliedAt || new Date().toLocaleString()
-                            };
-                            setSessionAppData(normalized);
-                            notify(`FETCHED SESSION STORAGE: Operative [${normalized.applicantUser}] applied for [${normalized.matchCode}]!`, 'success');
-                          } else {
-                            // After refresh or before applying, it is completely EMPTY. Nothing will be printed!
-                            setSessionAppData(null);
-                            notify('SESSION STORAGE IS EMPTY: Nothing stored (vanished after refresh).', 'info');
-                          }
-                        } catch (err) {
-                          console.error(err);
+                  <button
+                    type="button"
+                    className="lz-storage-fetch-btn session"
+                    onClick={() => {
+                      setHasFetchedSession(true);
+                      try {
+                        const s = sessionStorage.getItem('applied_tournament_session');
+                        if (s) {
+                          const parsed = JSON.parse(s);
+                          const normalized = {
+                            matchId: parsed.matchId || parsed.id || 1,
+                            matchCode: parsed.matchCode || parsed.match_code || 'TM-101',
+                            title: parsed.title || 'SECTOR 07 CYBERNETIC CLASH',
+                            category: parsed.category || 'ELITE',
+                            scheduledTime: parsed.scheduledTime || parsed.scheduled_time || '2026-10-18 18:00 UTC',
+                            prizeAmount: parsed.prizeAmount || parsed.prize_amount || 50000,
+                            applicantUser: parsed.applicantUser || (user ? user.username : 'cadet_operative'),
+                            appliedAt: parsed.appliedAt || new Date().toLocaleString()
+                          };
+                          setSessionAppData(normalized);
+                          notify(`FETCHED SESSION STORAGE: Operative [${normalized.applicantUser}] applied for [${normalized.matchCode}]!`, 'success');
+                        } else {
                           setSessionAppData(null);
-                          notify('Error reading Session Storage.', 'error');
+                          notify('SESSION STORAGE IS EMPTY: Nothing stored (vanished after refresh).', 'info');
                         }
-                      }}
-                      title="Fetch current Session Storage record (Empty after page refresh)"
-                    >
-                      ⚡ FETCH SESSION STORAGE
-                    </button>
-                    <button
-                      type="button"
-                      className="ref-pill-btn"
-                      style={{ fontSize: '11px', padding: '4px 10px', height: 'auto', background: '#18181b', color: '#34d399', borderColor: '#10b981' }}
-                      onClick={() => {
-                        setHasFetchedLocal(true);
-                        try {
-                          const l = localStorage.getItem('tournament_applications_history');
-                          const list = l ? JSON.parse(l) : [];
-                          setLocalAppData(list);
-                          notify(`FETCHED LOCAL STORAGE: ${list.length} permanent tournament applications retrieved.`, 'success');
-                        } catch {
-                          setLocalAppData([]);
-                          notify('Error reading Local Storage.', 'error');
-                        }
-                      }}
-                      title="Fetch persistent Local Storage history"
-                    >
-                      💾 FETCH LOCAL STORAGE
-                    </button>
-                  </div>
+                      } catch (err) {
+                        console.error(err);
+                        setSessionAppData(null);
+                        notify('Error reading Session Storage.', 'error');
+                      }
+                    }}
+                    title="Fetch current Session Storage record"
+                  >
+                    ⚡ FETCH SESSION STORAGE
+                  </button>
                 </div>
-                <div className="smb-content">
-                  <div className="smb-line" style={{ alignItems: 'flex-start' }}>
-                    <span className="smb-label" style={{ minWidth: '190px' }}>SESSION STORAGE (VOLATILE):</span>
-                    <div className="smb-val" style={{ flex: 1, color: (hasFetchedSession && sessionAppData) ? '#60a5fa' : '#71717a' }}>
-                      {hasFetchedSession ? (
-                        sessionAppData ? (
-                          <div style={{ background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.3)', padding: '8px 12px', borderRadius: '4px', marginTop: '2px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <span style={{ fontWeight: 'bold', color: '#93c5fd' }}>
-                                OPERATIVE: @{sessionAppData.applicantUser} &bull; MATCH: {sessionAppData.matchCode} ({sessionAppData.title})
-                              </span>
-                              <span style={{ fontSize: '11px', color: '#f87171', fontWeight: 600 }}>
-                                ⚠ TRANSIENT: DISAPPEARS ON REFRESH
-                              </span>
-                            </div>
-                            <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '4px' }}>
-                              <span>CATEGORY: {sessionAppData.category}</span> &bull; 
-                              <span style={{ marginLeft: '6px' }}>SCHEDULED: ⏰ {sessionAppData.scheduledTime}</span> &bull; 
-                              <span style={{ marginLeft: '6px' }}>BOUNTY: {Number(sessionAppData.prizeAmount).toLocaleString()} CR</span>
-                            </div>
-                          </div>
-                        ) : (
-                          <span style={{ color: '#f87171', fontStyle: 'italic' }}>
-                            [Session storage is empty. Apply for a match first or it expired on refresh.]
-                          </span>
-                        )
-                      ) : (
-                        <span style={{ fontStyle: 'italic', color: '#71717a' }}>
-                          (Details hidden until you click "⚡ FETCH SESSION STORAGE". On page refresh, it disappears.)
-                        </span>
-                      )}
+                <div className="lz-storage-body">
+                  {hasFetchedSession ? (
+                    sessionAppData ? (
+                      <div className="lz-storage-record session">
+                        <div className="lz-record-top">
+                          <span className="lz-rec-code">{sessionAppData.matchCode}</span>
+                          <span className="lz-rec-user">@{sessionAppData.applicantUser}</span>
+                          <span className="lz-rec-badge volatile">TRANSIENT</span>
+                        </div>
+                        <div className="lz-rec-details">
+                          <span>{sessionAppData.title}</span> &bull; 
+                          <span>CAT: {sessionAppData.category}</span> &bull; 
+                          <span>⏰ {sessionAppData.scheduledTime}</span> &bull; 
+                          <span className="lz-rec-bounty">{Number(sessionAppData.prizeAmount).toLocaleString()} CR</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="lz-storage-empty">
+                        <span className="lz-empty-dash">—</span>
+                        <span>Session storage is empty. Apply for a match first or it expired on refresh.</span>
+                      </div>
+                    )
+                  ) : (
+                    <div className="lz-storage-placeholder">
+                      <span>Click <strong>"FETCH SESSION STORAGE"</strong> to query current volatile memory. Disappears upon page reload.</span>
                     </div>
-                  </div>
-
-                  <div className="smb-line" style={{ alignItems: 'flex-start', marginTop: '10px' }}>
-                    <span className="smb-label" style={{ minWidth: '190px' }}>LOCAL STORAGE (ALWAYS PRESENT):</span>
-                    <div className="smb-val" style={{ flex: 1, color: (hasFetchedLocal && localAppData.length > 0) ? '#34d399' : '#71717a' }}>
-                      {hasFetchedLocal ? (
-                        localAppData.length > 0 ? (
-                          <div>
-                            <div style={{ marginBottom: '6px', fontWeight: 'bold', color: '#6ee7b7' }}>
-                              {localAppData.length} PERSISTENT APPLICATION RECORDS (ALWAYS PRESERVED ACROSS REFRESHES):
-                            </div>
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                              {localAppData.map((app, i) => (
-                                <div
-                                  key={i}
-                                  style={{
-                                    background: '#141417',
-                                    border: '1px solid #27272a',
-                                    padding: '4px 8px',
-                                    fontSize: '11px',
-                                    borderRadius: '3px'
-                                  }}
-                                >
-                                  <span style={{ color: '#34d399', fontWeight: 600 }}>{app.matchCode}</span> &bull; 
-                                  <span style={{ color: '#e4e4e7', marginLeft: '4px' }}>@{app.applicantUser}</span> &bull; 
-                                  <span style={{ color: '#a1a1aa', marginLeft: '4px' }}>⏰ {app.scheduledTime}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ) : (
-                          <span style={{ color: '#f87171', fontStyle: 'italic' }}>No persistent records found in Local Storage.</span>
-                        )
-                      ) : (
-                        <span style={{ fontStyle: 'italic', color: '#71717a' }}>
-                          (Details hidden until you click "💾 FETCH LOCAL STORAGE". Always preserved across reloads.)
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
-              {/* Match List Cards */}
-              <div className="tcp-records-list">
+              {/* LOCAL STORAGE PANEL */}
+              <div className="lz-storage-card local-card">
+                <div className="lz-storage-header">
+                  <div className="lz-sh-left">
+                    <span className="lz-storage-indicator persistent" />
+                    <div>
+                      <h3 className="lz-storage-title">LOCAL STORAGE</h3>
+                      <span className="lz-storage-sub">PERSISTENT APPLICATION RECORDS</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="lz-storage-fetch-btn local"
+                    onClick={() => {
+                      setHasFetchedLocal(true);
+                      try {
+                        const l = localStorage.getItem('tournament_applications_history');
+                        const list = l ? JSON.parse(l) : [];
+                        setLocalAppData(list);
+                        notify(`FETCHED LOCAL STORAGE: ${list.length} permanent tournament applications retrieved.`, 'success');
+                      } catch {
+                        setLocalAppData([]);
+                        notify('Error reading Local Storage.', 'error');
+                      }
+                    }}
+                    title="Fetch persistent Local Storage history"
+                  >
+                    💾 FETCH LOCAL STORAGE
+                  </button>
+                </div>
+                <div className="lz-storage-body">
+                  {hasFetchedLocal ? (
+                    localAppData.length > 0 ? (
+                      <div className="lz-storage-records-list">
+                        {localAppData.map((app, i) => (
+                          <div key={i} className="lz-storage-record local">
+                            <div className="lz-record-top">
+                              <span className="lz-rec-code">{app.matchCode}</span>
+                              <span className="lz-rec-user">@{app.applicantUser}</span>
+                              <span className="lz-rec-badge persistent">PERSISTENT</span>
+                            </div>
+                            <div className="lz-rec-details">
+                              <span>⏰ {app.scheduledTime}</span> &bull; 
+                              <span>RECORD #{i + 1}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="lz-storage-empty">
+                        <span className="lz-empty-dash">—</span>
+                        <span>No persistent tournament applications found in Local Storage.</span>
+                      </div>
+                    )
+                  ) : (
+                    <div className="lz-storage-placeholder">
+                      <span>Click <strong>"FETCH LOCAL STORAGE"</strong> to retrieve permanent client applications. Retained across browser sessions.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Main Operational Workspace: Match Table (Left/Center) + Tournament Details (Right) */}
+            <div className="lz-operational-workspace">
+              {/* Information-Dense Match Registry Table */}
+              <section className="lz-table-container">
+                <div className="lz-table-header-bar">
+                  <div className="lz-thb-left">
+                    <span className="lz-thb-dot" />
+                    <span className="lz-thb-title">TOURNAMENT REGISTRY MATRIX</span>
+                  </div>
+                  <span className="lz-thb-info">SELECT ROW TO INSPECT OPERATIONAL PARAMETERS</span>
+                </div>
+
                 {isLoading && (
-                  <div className="tcp-loading-state">
-                    <div className="radar-spinner-mini" />
-                    <span>PERFORMING ASYNC AJAX FETCH...</span>
+                  <div className="lz-table-loading">
+                    <div className="lz-loading-spinner" />
+                    <span>FETCHING ACTIVE TOURNAMENT REGISTRY VIA AJAX...</span>
                   </div>
                 )}
 
                 {hasError && (
-                  <div className="tcp-error-state">
-                    <span className="error-icon">⚠</span>
-                    <p>Failed to retrieve tournament records.</p>
-                    <button className="ref-pill-btn active" onClick={loadTournaments}>
+                  <div className="lz-table-error">
+                    <span className="lz-err-icon">⚠</span>
+                    <p>Failed to retrieve tournament records from endpoint.</p>
+                    <button className="lz-retry-btn" onClick={loadTournaments}>
                       TRIGGER RETRY PATH
                     </button>
                   </div>
                 )}
 
-                {!isLoading && !hasError && filteredMatches.map((m) => {
-                  const isSelected = selectedMatch && selectedMatch.id === m.id;
-                  return (
-                    <div
-                      key={m.id}
-                      data-id={m.id}
-                      data-code={m.match_code}
-                      data-category={m.category}
-                      data-status={m.status}
-                      className={`tourney-record-card ${isSelected ? 'selected' : ''}`}
-                      onClick={() => {
-                        setSelectedMatch(m);
-                        setHasFetchedApplicants(false);
-                      }}
-                    >
-                      <div className="trc-left">
-                        <span className={`trc-status-dot ${m.status.toLowerCase()}`} />
-                        <div>
-                          <div className="trc-code">{m.match_code}</div>
-                          <div className="trc-title">{m.title}</div>
-                          <div className="trc-sub">
-                            {m.category} &bull; {m.match_type} &bull; ⏰ {m.scheduled_time || '2026-10-18 18:00 UTC'}
-                          </div>
-                        </div>
-                      </div>
+                {!isLoading && !hasError && (
+                  <div className="lz-table-scroll-wrapper">
+                    <table className="lz-match-table">
+                      <thead>
+                        <tr>
+                          <th className="th-code">MATCH ID</th>
+                          <th className="th-title">TITLE & INTEL</th>
+                          <th className="th-cat">CATEGORY / TYPE</th>
+                          <th className="th-time">SCHEDULED (UTC)</th>
+                          <th className="th-bounty">BOUNTY</th>
+                          <th className="th-status">STATUS</th>
+                          <th className="th-action">ACTION</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredMatches.length === 0 ? (
+                          <tr>
+                            <td colSpan="7" className="lz-table-empty-row">
+                              NO TOURNAMENT RECORDS MATCH THE CURRENT FILTERS.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredMatches.map((m) => {
+                            const isSelected = selectedMatch && selectedMatch.id === m.id;
+                            return (
+                              <tr
+                                key={m.id}
+                                className={`lz-row ${isSelected ? 'selected' : ''}`}
+                                onClick={() => {
+                                  setSelectedMatch(m);
+                                  setHasFetchedApplicants(false);
+                                }}
+                              >
+                                <td className="td-code">
+                                  <div className="lz-code-cell">
+                                    <span className="lz-selected-bar" />
+                                    <span className="lz-code-text">{m.match_code}</span>
+                                  </div>
+                                </td>
+                                <td className="td-title">
+                                  <div className="lz-title-cell">
+                                    <span className="lz-match-name">{m.title}</span>
+                                    <span className="lz-match-intel">
+                                      {m.max_players ? `${m.registered_count || 0} / ${m.max_players} CADETS REGISTERED` : 'HIGH COMMAND SANCTIONED'}
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="td-cat">
+                                  <span className="lz-cat-badge">{m.category}</span>
+                                  <span className="lz-type-badge">{m.match_type}</span>
+                                </td>
+                                <td className="td-time">
+                                  <span className="lz-time-text">⏰ {m.scheduled_time || '2026-10-18 18:00 UTC'}</span>
+                                </td>
+                                <td className="td-bounty">
+                                  <span className="lz-bounty-badge">
+                                    {Number(m.prize_amount).toLocaleString()} CR
+                                  </span>
+                                </td>
+                                <td className="td-status">
+                                  <span className={`lz-status-chip ${m.status.toLowerCase()}`}>
+                                    <span className="lz-chip-bullet" />
+                                    {m.status}
+                                  </span>
+                                </td>
+                                <td className="td-action" onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    className="lz-row-delete-btn"
+                                    onClick={(e) => handleRemoveItem(m.id, e)}
+                                    title={`Decommission match ${m.match_code}`}
+                                  >
+                                    ✕
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
 
-                      <div className="trc-right">
-                        <span className="trc-bounty">
-                          {Number(m.prize_amount).toLocaleString()} CR
+              {/* Dedicated Tournament Details Panel (Right Side) */}
+              <aside className="lz-details-panel">
+                {selectedMatch ? (
+                  <div className="lz-details-card">
+                    <div className="lz-dc-top">
+                      <div className="lz-dc-meta">
+                        <span className="lz-dc-id">{selectedMatch.match_code}</span>
+                        <span className={`lz-dc-status ${selectedMatch.status.toLowerCase()}`}>
+                          {selectedMatch.status}
                         </span>
+                      </div>
+                      <span className="lz-dc-label">OPERATIONAL BRIEFING</span>
+                    </div>
+
+                    <h2 className="lz-dc-title">{selectedMatch.title}</h2>
+                    <p className="lz-dc-desc">
+                      Official LastZone high-stakes competitive engagement. Operatives deploy under strict Tactical Combat Rules. Victor claims primary credit allocation.
+                    </p>
+
+                    <div className="lz-dc-divider" />
+
+                    {/* 2-Column Metadata Grid */}
+                    <div className="lz-dc-grid">
+                      <div className="lz-dc-field">
+                        <span className="lz-fld-label">CHAMPIONSHIP BOUNTY</span>
+                        <span className="lz-fld-val red">
+                          {Number(selectedMatch.prize_amount).toLocaleString()} CREDITS
+                        </span>
+                      </div>
+                      <div className="lz-dc-field">
+                        <span className="lz-fld-label">SCHEDULED START TIME</span>
+                        <span className="lz-fld-val">
+                          ⏰ {selectedMatch.scheduled_time || '2026-10-18 18:00 UTC'}
+                        </span>
+                      </div>
+                      <div className="lz-dc-field">
+                        <span className="lz-fld-label">CATEGORY & DISCIPLINE</span>
+                        <span className="lz-fld-val">
+                          {selectedMatch.category} // {selectedMatch.match_type}
+                        </span>
+                      </div>
+                      <div className="lz-dc-field">
+                        <span className="lz-fld-label">REGISTERED OPERATIVES</span>
+                        <span className="lz-fld-val">
+                          {selectedMatch.registered_count} / {selectedMatch.max_players} CADETS
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Operational Action Buttons */}
+                    <div className="lz-dc-actions">
+                      <button
+                        className="lz-btn-primary-apply"
+                        onClick={() => handleApplyTournament(selectedMatch)}
+                        title="Apply and store in Session Storage, Local Storage, and MySQL"
+                      >
+                        APPLY FOR TOURNAMENT
+                      </button>
+
+                      <div className="lz-dc-secondary-row">
                         <button
-                          className="trc-remove-btn"
-                          onClick={(e) => handleRemoveItem(m.id, e)}
-                          title="Remove item from match center"
+                          className="lz-btn-secondary"
+                          onClick={() => handleStartGame(selectedMatch)}
                         >
-                          ✕
+                          ▶ START GAME IN SECTOR 07
+                        </button>
+
+                        <button
+                          className="lz-btn-secondary"
+                          onClick={() => handleFetchApplicants(selectedMatch.id)}
+                          disabled={isLoadingApplicants}
+                        >
+                          {isLoadingApplicants ? 'FETCHING...' : '👥 FETCH DATA (APPLIED PLAYERS)'}
                         </button>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </aside>
 
-            {/* RIGHT INSPECTION & MATCH DETAIL PANEL */}
-            <section className="tourney-detail-view">
-              {selectedMatch ? (
-                <div className="tdv-card">
-                  <div className="tdv-top-banner">
-                    <span className="tdv-tag">INSPECTING RECORD // {selectedMatch.match_code}</span>
-                    <span className={`tdv-status-badge ${selectedMatch.status.toLowerCase()}`}>
-                      {selectedMatch.status}
-                    </span>
-                  </div>
-
-                  <h1 className="tdv-match-title">{selectedMatch.title}</h1>
-
-                  <div className="tdv-metrics-grid">
-                    <div className="tdv-metric-box">
-                      <span className="tmb-label">CHAMPIONSHIP BOUNTY</span>
-                      <span className="tmb-val gold">
-                        {Number(selectedMatch.prize_amount).toLocaleString()} CREDITS
-                      </span>
-                    </div>
-                    <div className="tdv-metric-box">
-                      <span className="tmb-label">SCHEDULED START TIME</span>
-                      <span className="tmb-val">
-                        ⏰ {selectedMatch.scheduled_time || '2026-10-18 18:00 UTC'}
-                      </span>
-                    </div>
-                    <div className="tdv-metric-box">
-                      <span className="tmb-label">CATEGORY & DISCIPLINE</span>
-                      <span className="tmb-val">
-                        {selectedMatch.category} // {selectedMatch.match_type}
-                      </span>
-                    </div>
-                    <div className="tdv-metric-box">
-                      <span className="tmb-label">REGISTERED OPERATIVES</span>
-                      <span className="tmb-val">
-                        {selectedMatch.registered_count} / {selectedMatch.max_players} CADETS
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Primary Application & Play Actions */}
-                  <div className="tdv-launch-actions">
-                    <button
-                      className="tdv-apply-btn"
-                      onClick={() => handleApplyTournament(selectedMatch)}
-                      title="Apply and store in Session Storage, Local Storage and MySQL"
-                    >
-                      📝 APPLY FOR TOURNAMENT (SESSION & LOCAL STORAGE)
-                    </button>
-
-                    <button
-                      className="tdv-play-btn"
-                      onClick={() => handleStartGame(selectedMatch)}
-                    >
-                      ▶ START GAME IN SECTOR 07
-                    </button>
-
-                    <button
-                      className="tdv-fetch-btn"
-                      onClick={() => handleFetchApplicants(selectedMatch.id)}
-                      disabled={isLoadingApplicants}
-                    >
-                      {isLoadingApplicants ? 'FETCHING APPLICANTS...' : '👥 FETCH DATA (APPLIED PLAYERS)'}
-                    </button>
-                  </div>
-
-                  {/* Applied Players Section (Fetched via "FETCH DATA BUTTON") */}
-                  {hasFetchedApplicants && (
-                    <div className="tdv-applicants-block">
-                      <div className="tab-header">
-                        <span className="tab-title">APPLIED OPERATIVES FOR {selectedMatch.match_code} ({applicants.length})</span>
-                        <span className="tab-time-pill">SCHEDULED: {selectedMatch.scheduled_time || '2026-10-18 18:00 UTC'}</span>
-                      </div>
-
-                      {applicants.length > 0 ? (
-                        <div className="tab-cards-row">
-                          {applicants.map((app) => (
-                            <div key={app.id} className="applicant-item-card">
-                              <span className="aic-dot" />
-                              <div className="aic-info">
-                                <span className="aic-name">{app.display_name || app.username}</span>
-                                <span className="aic-handle">@{app.username} &bull; ⏰ {app.scheduled_time}</span>
+                    {/* Applied Players List when Fetched */}
+                    {hasFetchedApplicants && (
+                      <div className="lz-applicants-subpanel">
+                        <div className="lz-asp-header">
+                          <span className="lz-asp-title">APPLIED OPERATIVES ({applicants.length})</span>
+                          <span className="lz-asp-time">{selectedMatch.scheduled_time || '2026-10-18 18:00 UTC'}</span>
+                        </div>
+                        {applicants.length > 0 ? (
+                          <div className="lz-asp-list">
+                            {applicants.map((app) => (
+                              <div key={app.id} className="lz-asp-item">
+                                <span className="lz-asp-dot" />
+                                <div className="lz-asp-info">
+                                  <span className="lz-asp-name">{app.display_name || app.username}</span>
+                                  <span className="lz-asp-handle">@{app.username}</span>
+                                </div>
+                                <span className="lz-asp-status">{app.status}</span>
                               </div>
-                              <span className="aic-status-tag">{app.status}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="muted text-sm py-2">No operatives registered yet. Click 'APPLY FOR TOURNAMENT' to register your callsign.</p>
-                      )}
-                    </div>
-                  )}
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="lz-asp-empty">No operatives registered yet. Click 'APPLY FOR TOURNAMENT' to apply.</p>
+                        )}
+                      </div>
+                    )}
 
-                  {/* Historical participating Operatives */}
-                  <div className="tdv-historical-section">
-                    <h3 className="tdv-hist-title">CADET ROSTER QUICK LINKS</h3>
-                    <div className="tdv-roster-chips">
-                      {['dharnidharan', 'ghost_recon', 'spartan_117', 'valkyrie', 'shadow_hunter', 'jdramkrish'].map((cname) => (
-                        <div
-                          key={cname}
-                          className="cadet-chip"
-                          onClick={() => {
-                            setActiveTab('PROFILE');
-                            const matchIdMap = { dharnidharan: 1, ghost_recon: 2, spartan_117: 3, valkyrie: 4, shadow_hunter: 5, jdramkrish: 9 };
-                            setSearchParams({ tab: 'profile', userId: matchIdMap[cname] || 1 });
-                          }}
-                          title="View cadet history profile"
-                        >
-                          <span className="cadet-dot" />
-                          <span className="cadet-name">@{cname}</span>
-                          <span className="cadet-arrow">↗</span>
-                        </div>
-                      ))}
+                    {/* Operative Roster Quick Links */}
+                    <div className="lz-roster-section">
+                      <h4 className="lz-roster-title">CADET ROSTER QUICK LINKS</h4>
+                      <div className="lz-roster-chips">
+                        {['dharnidharan', 'ghost_recon', 'spartan_117', 'valkyrie', 'shadow_hunter', 'jdramkrish'].map((cname) => (
+                          <button
+                            key={cname}
+                            type="button"
+                            className="lz-cadet-tag"
+                            onClick={() => {
+                              setActiveTab('PROFILE');
+                              const matchIdMap = { dharnidharan: 1, ghost_recon: 2, spartan_117: 3, valkyrie: 4, shadow_hunter: 5, jdramkrish: 9 };
+                              setSearchParams({ tab: 'profile', userId: matchIdMap[cname] || 1 });
+                            }}
+                            title={`View profile for @${cname}`}
+                          >
+                            <span className="lz-cadet-dot" />
+                            <span>@{cname}</span>
+                            <span className="lz-cadet-arrow">↗</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="tdv-empty-notice">
-                  <h3>NO MATCH SELECTED</h3>
-                  <p>Select any tournament record from the left registry to inspect parameters.</p>
-                </div>
-              )}
-            </section>
+                ) : (
+                  <div className="lz-empty-details-card">
+                    <span className="lz-edc-icon">⚔</span>
+                    <h3>NO MATCH SELECTED</h3>
+                    <p>Select any tournament record from the registry matrix to inspect operational briefing.</p>
+                  </div>
+                )}
+              </aside>
+            </div>
           </div>
         )}
 
