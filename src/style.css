@@ -6781,221 +6781,649 @@ tr.rank-first .score-val {
 /* ==========================================================================
    ADMIN DASHBOARD WORKSPACE
    ========================================================================== */
-.admin-workspace {
-  max-width: 1320px;
+/* ==========================================================================
+   VANGUARD ADMIN CONTROL DASHBOARD REDESIGN
+   Palette: Background: #EAE9E8, Surface: #FDFDFD, Secondary: #F4F4F3,
+   Primary Text: #171717, Secondary Text: #777777, Borders: #E2E2E2,
+   Accent Red: #F32626, Muted Red: #FFF0EE, Neutral Status: #EEEEEE
+   ========================================================================== */
+.vanguard-admin-dashboard {
+  flex: 1;
+  max-width: 1480px;
   margin: 0 auto;
-  padding: 32px 36px;
+  padding: 32px 36px 60px;
   width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: #eae9e8;
 }
 
-.admin-header-row {
+/* Page Intro Block */
+.vad-intro-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vad-intro-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vad-accent-slant {
+  width: 14px;
+  height: 4px;
+  background: #f32626;
+  transform: skewX(-25deg);
+  display: inline-block;
+}
+
+.vad-meta-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #777777;
+  text-transform: uppercase;
+}
+
+.vad-intro-row {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin-bottom: 24px;
-  border-bottom: 1px solid #e5e7eb;
-  padding-bottom: 16px;
+  gap: 20px;
 }
 
-.admin-tag {
-  font-family: 'Space Grotesk', monospace;
-  font-size: 0.68rem;
-  font-weight: 800;
-  color: #dc2626;
-  letter-spacing: 0.1em;
-}
-
-.admin-title {
-  margin: 4px 0 0;
-  font-size: 1.6rem;
+.vad-page-title {
+  margin: 0;
+  font-size: 2rem;
   font-weight: 900;
-  color: #111827;
+  letter-spacing: -0.02em;
+  color: #171717;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+  line-height: 1.1;
 }
 
-.admin-split-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
+.vad-page-subtitle {
+  margin: 5px 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #777777;
+  text-transform: uppercase;
 }
 
-.admin-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 24px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.02);
+.vad-btn-outline-refresh {
+  background: #fdfdfd;
+  border: 1px solid #e2e2e2;
+  color: #171717;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.vad-btn-outline-refresh:hover {
+  background: #f4f4f3;
+  border-color: #171717;
+}
+
+.vad-refresh-icon {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.vad-heading-divider {
+  height: 1px;
+  background: linear-gradient(90deg, #f32626 0%, #e2e2e2 25%, #e2e2e2 100%);
+  margin-top: 6px;
+}
+
+/* 4 Overview Statistic Cards */
+.vad-metrics-overview {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
 
-.ac-header {
+.vad-stat-card {
+  background: #fdfdfd;
+  border: 1px solid #e2e2e2;
+  border-radius: 2px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.015);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.vad-stat-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.vad-stat-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #f3f4f6;
-  padding-bottom: 12px;
 }
 
-.ac-header h3 {
-  margin: 0;
-  font-size: 0.85rem;
+.vad-stat-label {
+  font-size: 0.65rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #111827;
+  letter-spacing: 0.08em;
+  color: #777777;
+  text-transform: uppercase;
 }
 
-.ac-counter {
+.vad-stat-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #171717;
+}
+
+.vad-stat-dot.red {
+  background: #f32626;
+}
+
+.vad-stat-val {
   font-family: 'Space Grotesk', monospace;
-  font-size: 0.7rem;
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #171717;
+  line-height: 1.1;
+  margin-top: 4px;
+}
+
+.vad-stat-hint {
+  font-size: 0.65rem;
+  color: #777777;
+}
+
+/* Management Panel Containers */
+.vad-panel {
+  background: #fdfdfd;
+  border: 1px solid #e2e2e2;
+  border-radius: 2px;
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.015);
+}
+
+.vad-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #e2e2e2;
+}
+
+.vad-ph-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vad-ph-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 1px;
+  background: #171717;
+}
+
+.vad-ph-indicator.red {
+  background: #f32626;
+}
+
+.vad-panel-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  color: #171717;
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.vad-panel-count {
+  font-size: 0.65rem;
   font-weight: 700;
-  background: #f3f4f6;
-  padding: 2px 8px;
-  border-radius: 4px;
-  color: #374151;
+  letter-spacing: 0.08em;
+  color: #777777;
+  text-transform: uppercase;
 }
 
-/* Admin Create & Edit Forms */
-.admin-create-form,
-.admin-edit-form {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 14px 18px;
-}
-
-.admin-create-form h4,
-.admin-edit-form h4 {
-  margin: 0 0 10px;
+.vad-btn-commission {
+  background: #fdfdfd;
+  border: 1px solid #f32626;
+  color: #f32626;
   font-size: 0.72rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #374151;
-}
-
-.acf-row {
+  letter-spacing: 0.06em;
+  padding: 7px 14px;
+  border-radius: 2px;
+  cursor: pointer;
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
 }
 
-.acf-row input,
-.acf-row select,
-.aef-fields input,
-.aef-fields select,
-.acf-grid input,
-.acf-grid select {
-  padding: 8px 10px;
-  background: #ffffff;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 0.75rem;
-  color: #111;
-  outline: none;
+.vad-btn-commission:hover {
+  background: #f32626;
+  color: #ffffff;
 }
 
-.acf-grid {
+.vad-plus {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+/* Forms & Input Boxes */
+.vad-form-box {
+  background: #f4f4f3;
+  border: 1px solid #e2e2e2;
+  border-radius: 2px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vad-edit-box {
+  border-left: 3px solid #f32626;
+  background: #fff0ee;
+}
+
+.vad-fb-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vad-fb-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 2px 7px;
+  border-radius: 1px;
+  background: #171717;
+  color: #ffffff;
+  text-transform: uppercase;
+}
+
+.vad-fb-badge.new {
+  background: #171717;
+}
+
+.vad-fb-badge.red {
+  background: #f32626;
+}
+
+.vad-fb-header h4 {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #171717;
+}
+
+.vad-fb-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 10px;
 }
 
-.acf-btn-row,
-.aef-actions {
+.vad-fb-grid.cols-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.vad-fb-grid.cols-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.vad-input-wrap {
   display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vad-input-wrap label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #777777;
+  text-transform: uppercase;
+}
+
+.vad-input,
+.vad-select {
+  padding: 8px 10px;
+  background: #fdfdfd;
+  border: 1px solid #e2e2e2;
+  border-radius: 2px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #171717;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.vad-input:focus,
+.vad-select:focus {
+  border-color: #f32626;
+  background: #ffffff;
+}
+
+.vad-fb-actions {
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
 }
 
-.aef-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr 120px;
-  gap: 8px;
-  margin-bottom: 10px;
+.vad-btn-primary-action {
+  background: #171717;
+  border: 1px solid #171717;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 7px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-/* Admin Table */
-.admin-table-wrap {
+.vad-btn-primary-action:hover {
+  background: #000000;
+}
+
+.vad-btn-primary-action.red {
+  background: #f32626;
+  border-color: #f32626;
+}
+
+.vad-btn-primary-action.red:hover {
+  background: #d91616;
+}
+
+.vad-btn-save {
+  background: #f32626;
+  border: 1px solid #f32626;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 7px 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vad-btn-save:hover {
+  background: #d91616;
+}
+
+.vad-btn-cancel {
+  background: #fdfdfd;
+  border: 1px solid #e2e2e2;
+  color: #777777;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.vad-btn-cancel:hover {
+  background: #f4f4f3;
+  color: #171717;
+}
+
+/* Clean Admin Tables */
+.vad-table-container {
   overflow-x: auto;
-  border: 1px solid #f3f4f6;
-  border-radius: 4px;
+  border: 1px solid #e2e2e2;
+  border-radius: 2px;
 }
 
-.admin-table {
+.vad-data-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.75rem;
+  text-align: left;
 }
 
-.admin-table th {
-  background: #f9fafb;
-  padding: 10px 12px;
+.vad-data-table thead {
+  background: #f4f4f3;
+  border-bottom: 1px solid #e2e2e2;
+}
+
+.vad-data-table th {
+  padding: 10px 14px;
   font-size: 0.65rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
-  color: #6b7280;
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
+  letter-spacing: 0.08em;
+  color: #777777;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.admin-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #f3f4f6;
-  color: #111827;
+.vad-table-row {
+  border-bottom: 1px solid #e2e2e2;
+  transition: background-color 0.12s ease;
 }
 
-.admin-action-btns {
+.vad-table-row:hover {
+  background: #f4f4f3;
+}
+
+.vad-data-table td {
+  padding: 12px 14px;
+  vertical-align: middle;
+}
+
+.vad-cell-id {
+  font-family: 'Space Grotesk', monospace;
+  font-weight: 700;
+  color: #777777;
+  font-size: 0.72rem;
+}
+
+.vad-cell-callsign {
+  font-family: 'Space Grotesk', monospace;
+  font-weight: 800;
+  color: #171717;
+}
+
+.vad-callsign-text {
+  font-weight: 800;
+  color: #171717;
+}
+
+.vad-cell-name {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.act-edit-btn {
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
+.vad-display-text {
+  font-weight: 800;
+  color: #171717;
+}
+
+.vad-sub-text {
   font-size: 0.65rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 3px;
-  cursor: pointer;
+  color: #777777;
 }
 
-.act-edit-btn:hover {
-  background: #e5e7eb;
-}
-
-.act-del-btn {
-  background: #fee2e2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.act-del-btn:hover {
-  background: #fca5a5;
-}
-
-.role-pill {
+.vad-role-chip {
+  display: inline-block;
   font-size: 0.62rem;
   font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 3px;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.vad-role-chip.admin {
+  background: #fff0ee;
+  color: #f32626;
+  border: 1px solid #fed7d7;
+}
+
+.vad-role-chip.user {
+  background: #eeeeee;
+  color: #171717;
+  border: 1px solid #e2e2e2;
+}
+
+.vad-cell-score {
+  font-family: 'Space Grotesk', monospace;
+  font-weight: 800;
+  color: #171717;
+  text-align: right;
+}
+
+.vad-cell-code {
+  font-family: 'Space Grotesk', monospace;
+  font-weight: 800;
+}
+
+.vad-code-pill {
+  background: #171717;
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 1px;
+  font-size: 0.72rem;
+}
+
+.vad-cell-tourney-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vad-tourney-name {
+  font-weight: 800;
+  color: #171717;
+}
+
+.vad-tourney-tags {
+  font-size: 0.65rem;
+  color: #777777;
   letter-spacing: 0.04em;
 }
 
-.role-pill.admin {
-  background: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+.vad-cell-time {
+  font-size: 0.72rem;
+  color: #777777;
+  white-space: nowrap;
 }
 
-.role-pill.user {
-  background: #f3f4f6;
-  color: #374151;
+.vad-cell-bounty {
+  font-family: 'Space Grotesk', monospace;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #171717;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.vad-cell-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.vad-btn-action-edit {
+  background: #fdfdfd;
+  border: 1px solid #e2e2e2;
+  color: #171717;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vad-btn-action-edit:hover {
+  background: #171717;
+  color: #ffffff;
+}
+
+.vad-btn-action-delete {
+  background: #fff0ee;
+  border: 1px solid #fed7d7;
+  color: #f32626;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vad-btn-action-delete:hover {
+  background: #f32626;
+  color: #ffffff;
+}
+
+.vad-empty-cell {
+  text-align: center;
+  padding: 36px 20px;
+  color: #777777;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+/* Responsive Breakpoints for Admin Dashboard */
+@media (max-width: 1024px) {
+  .vad-metrics-overview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .vad-fb-grid.cols-3,
+  .vad-fb-grid.cols-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .vanguard-admin-dashboard {
+    padding: 20px 16px 40px;
+  }
+
+  .vad-intro-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .vad-metrics-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .vad-fb-grid.cols-3,
+  .vad-fb-grid.cols-4 {
+    grid-template-columns: 1fr;
+  }
+
+  .vad-panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
 }
 
 

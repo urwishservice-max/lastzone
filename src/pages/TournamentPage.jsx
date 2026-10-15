@@ -1198,250 +1198,429 @@ export default function TournamentPage() {
           </div>
         )}
 
-        {/* TAB 3: ADMIN DASHBOARD (Manage Players CRUD & Tournament Management) */}
+        {/* TAB 3: ADMIN DASHBOARD (VANGUARD ADMIN CONTROL) */}
         {activeTab === 'ADMIN' && (
-          <div className="admin-workspace">
-            <div className="admin-header-row">
-              <div>
-                <span className="admin-tag">COMMAND OVERRIDE</span>
-                <h1 className="admin-title">VANGUARD ADMIN CONTROL DASHBOARD</h1>
+          <div className="vanguard-admin-dashboard">
+            {/* Elegant Page Introduction */}
+            <div className="vad-intro-block">
+              <div className="vad-intro-meta">
+                <span className="vad-accent-slant" />
+                <span className="vad-meta-tag">COMMAND OVERRIDE // CLASSIFIED OPERATIONS</span>
               </div>
-              <button className="ref-pill-btn" onClick={loadAdminUsers} disabled={isLoadingAdmin}>
-                ↻ REFRESH ADMIN DATA
-              </button>
+
+              <div className="vad-intro-row">
+                <div className="vad-intro-left">
+                  <h1 className="vad-page-title">VANGUARD ADMIN CONTROL</h1>
+                  <p className="vad-page-subtitle">
+                    COMMAND OVERRIDE &bull; OPERATIVE MANAGEMENT &bull; TOURNAMENT OPERATIONS
+                  </p>
+                </div>
+                <div className="vad-intro-right">
+                  <button
+                    type="button"
+                    className="vad-btn-outline-refresh"
+                    onClick={loadAdminUsers}
+                    disabled={isLoadingAdmin}
+                    title="Reload admin user profiles and database records"
+                  >
+                    <span className="vad-refresh-icon">↻</span> REFRESH ADMIN DATA
+                  </button>
+                </div>
+              </div>
+              <div className="vad-heading-divider" />
             </div>
 
-            {/* Admin Grid: Left Operatives CRUD + Right Tournament Management */}
-            <div className="admin-split-grid">
-              {/* Operatives Management Panel */}
-              <div className="admin-card">
-                <div className="ac-header">
-                  <h3>OPERATIVES MANAGEMENT (CRUD)</h3>
-                  <span className="ac-counter">{adminUsers.length} OPERATIVES</span>
+            {/* 4 Minimalist Overview Statistic Cards */}
+            <div className="vad-metrics-overview">
+              <div className="vad-stat-card">
+                <div className="vad-stat-top">
+                  <span className="vad-stat-label">TOTAL OPERATIVES</span>
+                  <span className="vad-stat-dot" />
                 </div>
+                <span className="vad-stat-val">{adminUsers.length}</span>
+                <span className="vad-stat-hint">Active combat accounts</span>
+              </div>
 
-                {/* Edit Operative Dialog */}
-                {editingUser && (
-                  <form className="admin-edit-form" onSubmit={handleAdminUpdateUser}>
-                    <h4>EDIT OPERATIVE #{editingUser.id} (@{editingUser.username})</h4>
-                    <div className="aef-fields">
+              <div className="vad-stat-card">
+                <div className="vad-stat-top">
+                  <span className="vad-stat-label">TOTAL MATCHES</span>
+                  <span className="vad-stat-dot red" />
+                </div>
+                <span className="vad-stat-val">{matches.length}</span>
+                <span className="vad-stat-hint">Scheduled operational sectors</span>
+              </div>
+
+              <div className="vad-stat-card">
+                <div className="vad-stat-top">
+                  <span className="vad-stat-label">ACTIVE MATCHES</span>
+                  <span className="vad-stat-dot" />
+                </div>
+                <span className="vad-stat-val">
+                  {matches.filter((m) => m.status === 'OPEN' || m.status === 'IN_PROGRESS').length}
+                </span>
+                <span className="vad-stat-hint">Accepting operative deployment</span>
+              </div>
+
+              <div className="vad-stat-card">
+                <div className="vad-stat-top">
+                  <span className="vad-stat-label">TOTAL REGISTERED PLAYERS</span>
+                  <span className="vad-stat-dot red" />
+                </div>
+                <span className="vad-stat-val">
+                  {matches.reduce((acc, m) => acc + (Number(m.registered_count) || 0), 0)}
+                </span>
+                <span className="vad-stat-hint">Cadets deployed across brackets</span>
+              </div>
+            </div>
+
+            {/* Operatives Management Panel */}
+            <section className="vad-panel">
+              <div className="vad-panel-header">
+                <div className="vad-ph-left">
+                  <span className="vad-ph-indicator" />
+                  <div>
+                    <h2 className="vad-panel-title">OPERATIVES MANAGEMENT</h2>
+                    <span className="vad-panel-count">{adminUsers.length} TOTAL REGISTERED CADETS</span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  className="vad-btn-commission"
+                  onClick={() => {
+                    const el = document.getElementById('vad-create-user-form');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  <span className="vad-plus">+</span> COMMISSION NEW OPERATIVE
+                </button>
+              </div>
+
+              {/* Edit Operative Dialog/Inline Form */}
+              {editingUser && (
+                <form className="vad-form-box vad-edit-box" onSubmit={handleAdminUpdateUser}>
+                  <div className="vad-fb-header">
+                    <span className="vad-fb-badge">EDITING OPERATIVE</span>
+                    <h4>OPERATIVE #{editingUser.id} &bull; @{editingUser.username}</h4>
+                  </div>
+                  <div className="vad-fb-grid cols-3">
+                    <div className="vad-input-wrap">
+                      <label>DISPLAY NAME</label>
                       <input
                         type="text"
                         placeholder="Display Name"
                         value={editingUser.displayName}
                         onChange={(e) => setEditingUser({ ...editingUser, displayName: e.target.value })}
                         required
+                        className="vad-input"
                       />
+                    </div>
+                    <div className="vad-input-wrap">
+                      <label>EMAIL ADDRESS</label>
                       <input
                         type="email"
                         placeholder="Email Address"
                         value={editingUser.email}
                         onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
                         required
+                        className="vad-input"
                       />
+                    </div>
+                    <div className="vad-input-wrap">
+                      <label>SECURITY ROLE</label>
                       <select
                         value={editingUser.role}
                         onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
+                        className="vad-select"
                       >
-                        <option value="ROLE_USER">ROLE_USER</option>
-                        <option value="ROLE_ADMIN">ROLE_ADMIN</option>
+                        <option value="ROLE_USER">ROLE_USER (Standard)</option>
+                        <option value="ROLE_ADMIN">ROLE_ADMIN (Command Override)</option>
                       </select>
                     </div>
-                    <div className="aef-actions">
-                      <button type="submit" className="ref-pill-btn active">SAVE UPDATE</button>
-                      <button type="button" className="ref-pill-btn" onClick={() => setEditingUser(null)}>CANCEL</button>
-                    </div>
-                  </form>
-                )}
+                  </div>
+                  <div className="vad-fb-actions">
+                    <button type="submit" className="vad-btn-save">SAVE UPDATE</button>
+                    <button type="button" className="vad-btn-cancel" onClick={() => setEditingUser(null)}>CANCEL</button>
+                  </div>
+                </form>
+              )}
 
-                {/* Create Operative Form */}
-                <form className="admin-create-form" onSubmit={handleAdminCreateUser}>
-                  <h4>+ COMMISSION NEW OPERATIVE CADET</h4>
-                  <div className="acf-row">
+              {/* Create Operative Form */}
+              <form id="vad-create-user-form" className="vad-form-box" onSubmit={handleAdminCreateUser}>
+                <div className="vad-fb-header">
+                  <span className="vad-fb-badge new">+ NEW COMMISSION</span>
+                  <h4>COMMISSION NEW OPERATIVE CADET</h4>
+                </div>
+                <div className="vad-fb-grid cols-4">
+                  <div className="vad-input-wrap">
+                    <label>CALLSIGN (USERNAME)</label>
                     <input
                       type="text"
-                      placeholder="Callsign (Username)"
+                      placeholder="e.g. ghost_recon"
                       value={newOperative.username}
                       onChange={(e) => setNewOperative({ ...newOperative, username: e.target.value })}
                       required
+                      className="vad-input"
                     />
+                  </div>
+                  <div className="vad-input-wrap">
+                    <label>TELEMETRY EMAIL</label>
                     <input
                       type="email"
-                      placeholder="Telemetry Email"
+                      placeholder="cadet@lastzone.io"
                       value={newOperative.email}
                       onChange={(e) => setNewOperative({ ...newOperative, email: e.target.value })}
                       required
+                      className="vad-input"
                     />
+                  </div>
+                  <div className="vad-input-wrap">
+                    <label>DISPLAY NAME</label>
                     <input
                       type="text"
-                      placeholder="Display Name"
+                      placeholder="Ghost Recon"
                       value={newOperative.displayName}
                       onChange={(e) => setNewOperative({ ...newOperative, displayName: e.target.value })}
+                      className="vad-input"
                     />
+                  </div>
+                  <div className="vad-input-wrap">
+                    <label>ASSIGNED ROLE</label>
                     <select
                       value={newOperative.role}
                       onChange={(e) => setNewOperative({ ...newOperative, role: e.target.value })}
+                      className="vad-select"
                     >
                       <option value="ROLE_USER">ROLE_USER</option>
                       <option value="ROLE_ADMIN">ROLE_ADMIN</option>
                     </select>
-                    <button type="submit" className="ref-pill-btn active">+ CREATE</button>
                   </div>
-                </form>
+                </div>
+                <div className="vad-fb-actions">
+                  <button type="submit" className="vad-btn-primary-action">+ COMMISSION OPERATIVE</button>
+                </div>
+              </form>
 
-                {/* Operatives Table */}
-                <div className="admin-table-wrap">
-                  <table className="admin-table">
-                    <thead>
+              {/* Operatives Table */}
+              <div className="vad-table-container">
+                <table className="vad-data-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '80px' }}>ID</th>
+                      <th style={{ width: '180px' }}>CALLSIGN</th>
+                      <th>NAME</th>
+                      <th style={{ width: '140px' }}>ROLE</th>
+                      <th style={{ width: '140px', textAlign: 'right' }}>BEST SCORE</th>
+                      <th style={{ width: '130px', textAlign: 'center' }}>ACTIONS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adminUsers.length === 0 ? (
                       <tr>
-                        <th>ID</th>
-                        <th>CALLSIGN</th>
-                        <th>NAME</th>
-                        <th>ROLE</th>
-                        <th>BEST SCORE</th>
-                        <th>ACTIONS</th>
+                        <td colSpan="6" className="vad-empty-cell">
+                          NO OPERATIVE PROFILES RETRIEVED. CLICK "REFRESH ADMIN DATA" TO QUERY MYSQL.
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {adminUsers.map((u) => (
-                        <tr key={u.id}>
-                          <td className="mono font-bold">#{u.id}</td>
-                          <td className="mono font-bold">@{u.username}</td>
-                          <td>{u.displayName}</td>
-                          <td>
-                            <span className={`role-pill ${u.role === 'ROLE_ADMIN' ? 'admin' : 'user'}`}>
-                              {u.role}
+                    ) : (
+                      adminUsers.map((u) => (
+                        <tr key={u.id} className="vad-table-row">
+                          <td className="vad-cell-id">#{u.id}</td>
+                          <td className="vad-cell-callsign">
+                            <span className="vad-callsign-text">@{u.username}</span>
+                          </td>
+                          <td className="vad-cell-name">
+                            <span className="vad-display-text">{u.displayName || u.username}</span>
+                            <span className="vad-sub-text">{u.email}</span>
+                          </td>
+                          <td className="vad-cell-role">
+                            <span className={`vad-role-chip ${u.role === 'ROLE_ADMIN' ? 'admin' : 'user'}`}>
+                              {u.role === 'ROLE_ADMIN' ? 'ADMIN OVERRIDE' : 'CADET OPERATIVE'}
                             </span>
                           </td>
-                          <td className="mono gold">{Number(u.bestScore).toLocaleString()}</td>
-                          <td>
-                            <div className="admin-action-btns">
+                          <td className="vad-cell-score">
+                            {Number(u.bestScore || 0).toLocaleString()}
+                          </td>
+                          <td className="vad-cell-actions">
+                            <button
+                              type="button"
+                              className="vad-btn-action-edit"
+                              onClick={() => setEditingUser({ id: u.id, username: u.username, displayName: u.displayName, email: u.email, role: u.role })}
+                            >
+                              EDIT
+                            </button>
+                            {u.id !== 1 && (
                               <button
-                                className="act-edit-btn"
-                                onClick={() => setEditingUser({ id: u.id, username: u.username, displayName: u.displayName, email: u.email, role: u.role })}
+                                type="button"
+                                className="vad-btn-action-delete"
+                                onClick={() => handleAdminDeleteUser(u.id, u.username)}
                               >
-                                EDIT
+                                DELETE
                               </button>
-                              {u.id !== 1 && (
-                                <button
-                                  className="act-del-btn"
-                                  onClick={() => handleAdminDeleteUser(u.id, u.username)}
-                                >
-                                  DELETE
-                                </button>
-                              )}
-                            </div>
+                            )}
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Tournament Management Panel */}
+            <section className="vad-panel">
+              <div className="vad-panel-header">
+                <div className="vad-ph-left">
+                  <span className="vad-ph-indicator red" />
+                  <div>
+                    <h2 className="vad-panel-title">TOURNAMENT MANAGEMENT</h2>
+                    <span className="vad-panel-count">{matches.length} SCHEDULED TOURNAMENT MATCHES</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Tournament Management Panel */}
-              <div className="admin-card">
-                <div className="ac-header">
-                  <h3>TOURNAMENT MANAGEMENT (ADD & DELETE)</h3>
-                  <span className="ac-counter">{matches.length} MATCHES</span>
+              {/* Compact Tournament Commission Form */}
+              <form className="vad-form-box" onSubmit={handleAdminCreateTournament}>
+                <div className="vad-fb-header">
+                  <span className="vad-fb-badge new red">+ COMMISSION SECTOR</span>
+                  <h4>COMMISSION NEW TOURNAMENT MATCH</h4>
                 </div>
-
-                {/* Create Tournament Form */}
-                <form className="admin-create-form" onSubmit={handleAdminCreateTournament}>
-                  <h4>+ COMMISSION NEW TOURNAMENT MATCH</h4>
-                  <div className="acf-grid">
+                <div className="vad-fb-grid cols-3">
+                  <div className="vad-input-wrap">
+                    <label>MATCH CODE</label>
                     <input
                       type="text"
-                      placeholder="Match Code (e.g. TM-109)"
+                      placeholder="e.g. TM-109"
                       value={newTournament.match_code}
                       onChange={(e) => setNewTournament({ ...newTournament, match_code: e.target.value })}
                       required
+                      className="vad-input"
                     />
+                  </div>
+                  <div className="vad-input-wrap">
+                    <label>TOURNAMENT TITLE</label>
                     <input
                       type="text"
-                      placeholder="Match Title"
+                      placeholder="e.g. SECTOR 09 REDLINE ASSAULT"
                       value={newTournament.title}
                       onChange={(e) => setNewTournament({ ...newTournament, title: e.target.value })}
                       required
+                      className="vad-input"
                     />
+                  </div>
+                  <div className="vad-input-wrap">
+                    <label>CATEGORY</label>
                     <select
                       value={newTournament.category}
                       onChange={(e) => setNewTournament({ ...newTournament, category: e.target.value })}
+                      className="vad-select"
                     >
-                      <option value="TACTICAL">TACTICAL</option>
-                      <option value="ELITE">ELITE</option>
-                      <option value="MASTERS">MASTERS</option>
-                      <option value="CHAMPIONSHIP">CHAMPIONSHIP</option>
+                      <option value="TACTICAL">Tactical</option>
+                      <option value="ELITE">Elite</option>
+                      <option value="MASTERS">Masters</option>
+                      <option value="CHAMPIONSHIP">Championship</option>
                     </select>
+                  </div>
+                  <div className="vad-input-wrap">
+                    <label>MATCH TYPE</label>
                     <select
                       value={newTournament.match_type}
                       onChange={(e) => setNewTournament({ ...newTournament, match_type: e.target.value })}
+                      className="vad-select"
                     >
-                      <option value="SOLO">SOLO</option>
-                      <option value="DUO">DUO</option>
-                      <option value="SQUAD">SQUAD</option>
+                      <option value="SOLO">Solo Operations</option>
+                      <option value="DUO">Duo Recon</option>
+                      <option value="SQUAD">Squad Battle</option>
                     </select>
+                  </div>
+                  <div className="vad-input-wrap">
+                    <label>BOUNTY AMOUNT (CREDITS)</label>
                     <input
                       type="number"
-                      placeholder="Prize Amount"
+                      placeholder="50000"
                       value={newTournament.prize_amount}
                       onChange={(e) => setNewTournament({ ...newTournament, prize_amount: Number(e.target.value) })}
+                      className="vad-input"
                     />
+                  </div>
+                  <div className="vad-input-wrap">
+                    <label>SCHEDULED TIME (UTC)</label>
                     <input
                       type="text"
-                      placeholder="Scheduled Time (e.g. 2026-10-25 18:00 UTC)"
+                      placeholder="2026-10-25 18:00 UTC"
                       value={newTournament.scheduled_time}
                       onChange={(e) => setNewTournament({ ...newTournament, scheduled_time: e.target.value })}
+                      className="vad-input"
                     />
                   </div>
-                  <div className="acf-btn-row">
-                    <button type="submit" className="ref-pill-btn active">+ COMMISSION MATCH</button>
-                  </div>
-                </form>
+                </div>
+                <div className="vad-fb-actions">
+                  <button type="submit" className="vad-btn-primary-action red">+ COMMISSION MATCH</button>
+                </div>
+              </form>
 
-                {/* Tournaments List in Admin */}
-                <div className="admin-table-wrap">
-                  <table className="admin-table">
-                    <thead>
+              {/* Tournament Table */}
+              <div className="vad-table-container">
+                <table className="vad-data-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '130px' }}>CODE</th>
+                      <th>TITLE</th>
+                      <th style={{ width: '220px' }}>SCHEDULED TIME</th>
+                      <th style={{ width: '150px', textAlign: 'right' }}>BOUNTY</th>
+                      <th style={{ width: '100px', textAlign: 'center' }}>ACTION</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {matches.length === 0 ? (
                       <tr>
-                        <th>CODE</th>
-                        <th>TITLE</th>
-                        <th>SCHEDULED TIME</th>
-                        <th>BOUNTY</th>
-                        <th>ACTION</th>
+                        <td colSpan="5" className="vad-empty-cell">
+                          NO ACTIVE TOURNAMENT RECORDS FOUND.
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {matches.map((m) => (
-                        <tr key={m.id}>
-                          <td className="mono font-bold">{m.match_code}</td>
-                          <td>{m.title}</td>
-                          <td className="mono">⏰ {m.scheduled_time || '2026-10-18 18:00 UTC'}</td>
-                          <td className="mono gold">{Number(m.prize_amount).toLocaleString()} CR</td>
-                          <td>
+                    ) : (
+                      matches.map((m) => (
+                        <tr key={m.id} className="vad-table-row">
+                          <td className="vad-cell-code">
+                            <span className="vad-code-pill">{m.match_code}</span>
+                          </td>
+                          <td className="vad-cell-tourney-title">
+                            <span className="vad-tourney-name">{m.title}</span>
+                            <span className="vad-tourney-tags">{m.category} &bull; {m.match_type}</span>
+                          </td>
+                          <td className="vad-cell-time">
+                            ⏰ {m.scheduled_time || '2026-10-18 18:00 UTC'}
+                          </td>
+                          <td className="vad-cell-bounty">
+                            {Number(m.prize_amount).toLocaleString()} CR
+                          </td>
+                          <td className="vad-cell-actions">
                             <button
-                              className="act-del-btn"
+                              type="button"
+                              className="vad-btn-action-delete"
                               onClick={() => handleAdminDeleteTournament(m.id, m.match_code)}
+                              title={`Decommission match ${m.match_code}`}
                             >
                               DELETE
                             </button>
                           </td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Assignment VIII: Competitor Games & Web Scraper Application */}
+            <section className="vad-panel vad-scraper-panel">
+              <div className="vad-panel-header">
+                <div className="vad-ph-left">
+                  <span className="vad-ph-indicator" />
+                  <div>
+                    <h2 className="vad-panel-title">COMPETITOR WEB SCRAPER & DOM ANALYZER</h2>
+                    <span className="vad-panel-count">ASSIGNMENT VIII &bull; 15-POINT DOM EXTRACTION SPEC</span>
+                  </div>
                 </div>
               </div>
-
-              {/* Assignment VIII: Competitor Games & Web Scraper Application */}
-              <div className="admin-card" style={{ gridColumn: '1 / -1' }}>
-                <div className="ac-header">
-                  <div>
-                    <span className="role-pill admin" style={{ marginRight: '8px' }}>ASSIGNMENT VIII</span>
-                    <h3 style={{ display: 'inline' }}>COMPETITOR WEB SCRAPER & DOM ANALYZER</h3>
-                  </div>
-                  <span className="ac-counter">15-POINT DOM EXTRACTION SPEC</span>
-                </div>
                 <p style={{ color: '#a1a1aa', fontSize: '13px', margin: '4px 0 16px' }}>
                   Enter any competitor game URL or target webpage. The PHP script fetches the raw HTML and extracts Page Title, Meta Description & Keywords, Charset, Lang, Canonical, Favicon, Open Graph, H1-H3 Headings, Classified Hyperlinks (Internal vs External), Images, Scripts/Stylesheets, Page Size in KB, and visible text Word Count.
                 </p>
@@ -1663,8 +1842,7 @@ export default function TournamentPage() {
                     </div>
                   </div>
                 )}
-              </div>
-            </div>
+              </section>
           </div>
         )}
       </main>
